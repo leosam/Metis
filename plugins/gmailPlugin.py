@@ -11,9 +11,9 @@ import nltk
 
 import xoauth
 #TODO: find a way to handle per-user prefs
-MY_EMAIL = 'sylvain.geneves@gmail.com'
-MY_TOKEN = '1/HtcddzI7wLNJIOY0MbaZ_ZonGjN62kMoAC_6lasxweU'  # your token
-MY_SECRET = '4Wl7gVVNdiZ35yPwegSRFRF-'                      # your secret
+MY_EMAIL = ''
+MY_TOKEN = ''  # your token
+MY_SECRET = ''                      # your secret
 
 class newMailSubjectEvent(action_def.Event):
    def __init__(self):
