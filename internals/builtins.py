@@ -14,7 +14,7 @@ class builtinEvent(Event):
 
 class builtinAction(Action):
    def __init__(self, builtinPlugin):
-      super(builtinAction,self).__init__("builtinAction", "noname", builtinPlugin)
+      super(builtinAction,self).__init__(type="builtinAction", name="noname", plugin=builtinPlugin)
    def __call__(self, args={}):
       logging.warning("in builtinAction! %s", args);
 

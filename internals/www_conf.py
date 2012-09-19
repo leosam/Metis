@@ -18,10 +18,10 @@ print   # blank line, end of headers
 
 print "<html><head>"
 print "<meta http-equiv='Content-type' content='text/html;charset=UTF-8'>"
-print "<script type='text/javascript' src='jquery-1.8.1.min.js'></script>"
-print "<script type='text/javascript' src='knockout-2.1.0.js'></script>"
-#print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
-#print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
+#print "<script type='text/javascript' src='jquery-1.8.1.min.js'></script>"
+#print "<script type='text/javascript' src='knockout-2.1.0.js'></script>"
+print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
+print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
 
  
 print "<link rel='stylesheet' type='text/css' href='http://learn.knockoutjs.com/Content/App/coderunner.css'>"

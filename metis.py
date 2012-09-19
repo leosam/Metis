@@ -29,10 +29,10 @@ from globalsManagers import *
 #init
 ######
 engine.getPluginManager().registerPlugin(builtins) #don't start useless thread
-#epm = EventProfileManager()
+epm = EventProfileManager()
 #print dir(epm)
 
-#engine.getPluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
+engine.getPluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
 
 
 # TODO: replace with actual user config, most likely read from file
@@ -95,6 +95,14 @@ for e in events:
 f = open("internals/Globals.json", 'w')
 try:
    f.write(json.dumps( {'actionsAvailable':actionNames, 'eventsAvailable':eventNames, 'users':userNames} ))
+   
+   #For debug when 'JSON not serializable object' error: 
+   """
+   print (actionNames)
+   f.write(json.dumps( {'actionsAvailable':actionNames} ))
+   f.write(json.dumps( {'eventsAvailable':eventNames} ))
+   f.write(json.dumps( {'users':userNames} ))
+   """
 finally:
    f.close()
 
