@@ -38,7 +38,10 @@ class EventEngine(threading.Thread):
          newTasks = list()
          for u in user_def.getUsers():
             ep = u.getProfileByEvent(newEvent)
-            newTasks.extend(ep.getActions())
+            if (ep != None):
+               newTasks.extend(ep.getActions())
+            else:
+               logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
          newEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
          for t in newTasks:
             t(newEvent.actionArgs)
