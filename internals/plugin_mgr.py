@@ -50,3 +50,4 @@ class PluginManagerClass:
          if (event.name == eventName):
             return event
       return None
+

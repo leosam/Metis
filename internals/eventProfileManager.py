@@ -16,23 +16,46 @@ from plugin_def import *
 from builtins   import *
 from action_def import *
 from user_def import *
+import globalsManagers
 
-
+#TODO: create users from Web interface
 class newUser(builtinEvent):
    def __init__(self):
-      super(builtinEvent,self).__init__(type="EventProfileEvent", name="newUser");
+      super(builtinEvent,self).__init__(type="EventProfileEvent", name="newUser")
 
 class profilesUpdated(builtinEvent):
    def __init__(self):
-      super(builtinEvent,self).__init__(type="EventProfileEvent", name="profilesUpdated");
+      super(builtinEvent,self).__init__(type="EventProfileEvent", name="profilesUpdated")
 
 # private function that actually does the work
 def __updateProfiles__(user, profiles):
    logging.warning("updating profile for %s" %(user.name))
-   if (len(profiles) > 0):
-      user.evtProfs = list() #clear all existing profiles
-      for p in profiles:
-         user.addEventProfile(p);
+   user.evtProfs = list() #clear all existing profiles
+   for p in profiles:
+      logging.info("new profile for %s contains actions for %s" %(user.name, p.event.name))
+      user.addEventProfile(p)
+   #always bind ourselves, otherwise it only works once and we can't modify the profile anymore
+   __bindProfilesUpdate__(user, globalsManagers.engine.getPluginManager())
+
+
+#ensure the profilesUpdated event is binded correctly for a given user
+#(no one should override that, because web interface is useless without it)
+def __bindProfilesUpdate__(user, manager):
+   logging.info("re-binding EventProfileManager");
+   prof = user.getProfileByEvent(profilesUpdated())
+   if (prof == None):
+      prof = EventProfile(profilesUpdated())
+      user.addEventProfile(prof)
+   action_already_found = False
+   action_to_add = manager.getActionByName("updateProfilesAction")
+   if (action_to_add == None):
+      raise RuntimeError("cannot find builtinAction : updateProfilesAction")
+   for a in prof.actions:
+      if (a.name == action_to_add.name):
+         action_already_found = True
+   if (not action_already_found):
+      prof.addAction( action_to_add )
+
 
 ############
 # IMPORTANT NOTE: 
@@ -113,22 +136,22 @@ class EventProfileManager(builtinPlugin):
       p.profiles = list()
       for eventIdx in range(len(p.data)):
          event = p.data[eventIdx]
-         logging.warning("for event %s" %(event) )
+         logging.debug("for event %s" %(event) )
          actions = list()
          for a in event['actions']:
-            logging.warning("found action %s " %(a) )
+            logging.debug("found action %s " %(a) )
             if (not a['removed']):
-               actionHandle = manager.manager.getActionByName(a['name']) #TODO: TOFIX: a['name'] doesn't necessarily exists
-               logging.warning(" got handle %s for action %s " %(actionHandle, a['name'] ))
+               actionHandle = manager.manager.getActionByName(a['name'])
+               logging.debug(" got handle %s for action %s " %(actionHandle, a['name'] ))
                actions.append( actionHandle )
          e = manager.manager.getEventByName(event['name'])
-         logging.warning("found event %s, adding actions %s" %(e,actions) )
+         logging.debug("found event %s, adding actions %s" %(e,actions) )
          p.profiles.append(EventProfile(e, actions))
       manager.profiles[name].profiles = p.profiles
       logging.info("loadProfilesFromFile DONE")
    
    def post(self, event):
-      logging.warning("Posting from EventProfileManager");
+      logging.debug("Posting from EventProfileManager");
       super(EventProfileManager, self).post(event)
 
    def run(self):
@@ -146,44 +169,28 @@ class EventProfileManager(builtinPlugin):
 
 class ActivityHandler(watchdog.events.FileSystemEventHandler,EventProfileManager):
    def __init__(self,evtProfMgr):
-      #super(ActivityHandler,self).__init__();
       self.eventProfileManager = evtProfMgr
    def on_created(self, obsEvent):
       logging.warning ("seen created file %s" %(obsEvent) )
       #do nothing with for now
       #TODO: create new user and add default EventProfile
-      """
-      path = obsEvent.src_path
-      try:
-         self.loadProfilesFromFile(path, self.eventProfileManager)
-         logging.warning ("DONE!!" )
-      except ValueError,e:
-         logging.error("CATCHED VALUE Exception : %s" %(e))
-      except Exception,e:
-         logging.error("CATCHED Exception : %s" %(e))
-      event = profilesUpdated()
-      name = self.eventProfileManager.getUserFromPath(path)
-      event.actionArgs = {'userName':name, 'profiles':self.eventProfileManager.profiles[name].profiles}
-      self.eventProfileManager.post(event)
-      """
    def on_modified(self, obsEvent):
       logging.warning ("seen modified file %s" %(obsEvent) )
       path = obsEvent.src_path
       try:
          self.loadProfilesFromFile(path, self.eventProfileManager)
-         logging.warning ("DONE!!" )
+         logging.debug("DONE!!")
       except ValueError,e:
-         logging.error("BAD VALUE Exception : %s" %(e))
+         logging.info("Ignoring %s" %(e))
       except Exception,e:
          logging.error("CATCHED 1 Exception : %s" %(e))
       try:
          event = profilesUpdated()
          name = self.eventProfileManager.getUserFromPath(path)
          event.actionArgs = {'userName':name, 'profiles':self.eventProfileManager.profiles[name].profiles}
-         logging.warning ("will post event %s" %(event.name) )
+         logging.info("will post event %s" %(event.name) )
          self.eventProfileManager.post(event)
-         logging.warning ("POSTED %s" %(event.name) )
+         logging.debug("POSTED %s" %(event.name) )
       except Exception,e:
          logging.error("CATCHED 2 Exception : %s" %(e))
-
 

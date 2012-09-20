@@ -23,7 +23,7 @@ class helloPlugin(plugin_def.Plugin):
       self.done = False
    def run(self):
       while (not self.done):
-         time.sleep(30)
+         time.sleep(3)
          self.post(HelloEvent())
    def stop(self):
       self.done = True

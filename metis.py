@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python 
 import sys
 sys.path.append('internals')
 sys.path.append('plugins')
@@ -15,12 +15,11 @@ import imp
 import json
 
 from action_def import *
-from plugin_mgr import *
+#from plugin_mgr import *
 from plugin_def import *
 from user_def import *
 from builtins import *
-from eventProfileManager import *
-from engine import *
+from eventEngine import *
 from globalsManagers import *
 
 ##### MAIN ####
@@ -28,10 +27,6 @@ from globalsManagers import *
 ######
 #init
 ######
-engine.getPluginManager().registerPlugin(builtins) #don't start useless thread
-epm = EventProfileManager()
-
-engine.getPluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
 
 
 # TODO: replace with actual user config, most likely read from file
@@ -41,9 +36,9 @@ user = createNewUser("Default")
 
 #bind to test EventProfileManager logic
 # NOTE : we need a system to get default bindings (at least for builtin plugins)
-prof = EventProfile(profilesUpdated())
-prof.addAction( engine.getPluginManager().getActionByName("updateProfilesAction") )
-user.addEventProfile(prof)
+#prof = EventProfile(profilesUpdated())
+#prof.addAction( engine.getPluginManager().getActionByName("updateProfilesAction") )
+#user.addEventProfile(prof)
 
 ### Plugin auto-loading stuff
 #basically loads and register the plugins of all python files (*.py) in the "plugins" dir

@@ -8,16 +8,16 @@ import logging
 import inspect
 import copy
 import action_def
-import plugin_mgr
 import plugin_def
 import user_def
+import plugin_mgr
 
 class EventEngine(threading.Thread):
    def __init__(self):
       threading.Thread.__init__(self)
       self.eventqueue = Queue.Queue()
       self.finished = 0
-      self.PluginManager = plugin_mgr.PluginManagerClass(self);
+      self.PluginManager = plugin_mgr.PluginManagerClass(self)
 
    def getPluginManager(self):
       return self.PluginManager
@@ -43,6 +43,8 @@ class EventEngine(threading.Thread):
             else:
                logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
          newEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
+         if (len(newTasks) <= 0):
+            logging.warning("no action to execute for event %s" %(newEvent.name))
          for t in newTasks:
             t(newEvent.actionArgs)
             t.treated = 1

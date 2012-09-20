@@ -4,8 +4,11 @@ General requirements
 To run Metis, you'll need:
 
 * Python (>= 2.7)
-* Pip
+
+Not necessary to launch, but some plugins won't work without:
+
 * A text-to-speech voice synthetizer (festival, espeak, ...)
+* An Internet connection (to check emails, calendar, Facebook, Twitter, and others)
 
 Platform specific requirements
 ==============================
@@ -26,11 +29,10 @@ you should install the following packages to match Metis dependencies:
 
 You will need a webserver with CGI support.
 the homepage of the Web Interface is
-    internals/www_conf.py
+    internals/www/www_conf.py
     
-    chmod 755 internals/www_conf.py 
-    chmod 755 internals/*js
-    
+    chmod -R 755 internals/www/
+
 
 Running Metis
 =================
@@ -42,4 +44,8 @@ Running in the foreground
 To run Metis in the foreground execute:
 
     python metis.py
+
+or 
     
+    ./metis.py
+

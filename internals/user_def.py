@@ -23,14 +23,6 @@ users = list()
 def getUsers():
    return users
 
-def createNewUser(name):
-   if (getUserByName(name) != None):
-      raise ValueError("user %s already exists" %(name))
-   else:
-      u = User(name)
-      users.append(u)
-      return u
-
 def getUserByName(name):
    for u in getUsers():
       if (u.name == name):
@@ -54,4 +46,15 @@ class User:
       self.evtProfs.append(evtprof)
    #TODO: stuff to manage EventProfiles online, per user
 
+
+from globalsManagers import *
+from eventProfileManager import __bindProfilesUpdate__
+def createNewUser(name):
+   if (getUserByName(name) != None):
+      raise ValueError("user %s already exists" %(name))
+   else:
+      u = User(name)
+      users.append(u)
+      __bindProfilesUpdate__(u, globalsManagers.engine.getPluginManager())
+      return u
 
