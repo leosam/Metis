@@ -6,11 +6,7 @@ import copy
 import json
 import os
 import sys
-import cgi###!c:/Python27/python.exe
-
-from user_def import *
-from plugin_mgr import *
-from globalsManagers import *
+import cgi     ###!c:/Python27/python.exe
 
 import cgitb
 cgitb.enable()

@@ -3,11 +3,7 @@
 import logging
 import inspect
 import copy
-import cgi###!c:/Python27/python.exe
-
-from user_def import *
-from plugin_mgr import *
-from globalsManagers import *
+import cgi  ###!c:/Python27/python.exe
 
 import json
 import cgitb
@@ -18,10 +14,10 @@ print   # blank line, end of headers
 
 print "<html><head>"
 print "<meta http-equiv='Content-type' content='text/html;charset=UTF-8'>"
-print "<script type='text/javascript' src='jquery-1.8.1.min.js'></script>"
-print "<script type='text/javascript' src='knockout-2.1.0.js'></script>"
-#print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
-#print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
+#print "<script type='text/javascript' src='jquery-1.8.1.min.js'></script>"
+#print "<script type='text/javascript' src='knockout-2.1.0.js'></script>"
+print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
+print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
 
  
 print "<link rel='stylesheet' type='text/css' href='http://learn.knockoutjs.com/Content/App/coderunner.css'>"
@@ -128,7 +124,7 @@ print "  }"
 print "  function TaskListViewModel() {"
 print "   // Data"
 print "   var self = this;"
-print "   self.defaultUser = new User({name:'Default'});"
+print "   self.defaultUser = new User({name:'WWWDefault'});"
 print "   self.chosenUserName = ko.observable(self.defaultUser);"
 print "   self.globalActions = ko.observableArray([]);"  #from Globals (=all actions available)
 print "   self.events = ko.observableArray([]);"  #from Globals (=all events available)
