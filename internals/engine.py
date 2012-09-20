@@ -31,9 +31,6 @@ class EventEngine(threading.Thread):
       self.finished = 1
 
    def run(self):
-#      logging.info("starting festival server")
-#      self.festival = festival.FestivalWrapper()
-#      self.festival.start()
       logging.warning("STARTING")
       while(not self.finished):
          newEvent = self.eventqueue.get() #python's bug: can't be killed by Ctrl+C
@@ -47,9 +44,8 @@ class EventEngine(threading.Thread):
             t(newEvent.actionArgs)
             t.treated = 1
       
-      time.sleep(5); #TODO: remove ugly sleep and wait on all plugins to stop instead
+      time.sleep(5); #TODO: remove ugly sleep and actually wait on all plugins to stop instead
       logging.warning("STOPPING")
-#      self.festival.stop()
 
 def endtask(**args):
    args['engine'].post(action_def.Action(args['engine'].stopengine));

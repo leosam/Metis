@@ -3,11 +3,7 @@
 import logging
 import inspect
 import copy
-import cgi###!c:/Python27/python.exe
-
-from user_def import *
-from plugin_mgr import *
-from globalsManagers import *
+import cgi  ###!c:/Python27/python.exe
 
 import json
 import cgitb
@@ -128,7 +124,7 @@ print "  }"
 print "  function TaskListViewModel() {"
 print "   // Data"
 print "   var self = this;"
-print "   self.defaultUser = new User({name:'Default'});"
+print "   self.defaultUser = new User({name:'WWWDefault'});"
 print "   self.chosenUserName = ko.observable(self.defaultUser);"
 print "   self.globalActions = ko.observableArray([]);"  #from Globals (=all actions available)
 print "   self.events = ko.observableArray([]);"  #from Globals (=all events available)

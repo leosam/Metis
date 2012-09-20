@@ -30,14 +30,20 @@ from globalsManagers import *
 ######
 engine.getPluginManager().registerPlugin(builtins) #don't start useless thread
 epm = EventProfileManager()
-#print dir(epm)
 
 engine.getPluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
 
 
 # TODO: replace with actual user config, most likely read from file
-User("Test2")
-user = User("Test")
+#createNewUser('Test2')
+#createNewUser('Test')
+user = createNewUser("Default")
+
+#bind to test EventProfileManager logic
+# NOTE : we need a system to get default bindings (at least for builtin plugins)
+prof = EventProfile(profilesUpdated())
+prof.addAction( engine.getPluginManager().getActionByName("updateProfilesAction") )
+user.addEventProfile(prof)
 
 ### Plugin auto-loading stuff
 #basically loads and register the plugins of all python files (*.py) in the "plugins" dir
@@ -46,7 +52,7 @@ user = User("Test")
 for p in glob.glob('plugins/*.py'):
    fileName = os.path.basename(p)
    pluginName = string.split(fileName,".")[0]
-   logging.warning("Plugin %s is available", pluginName)
+   logging.warning("Potential plugin %s is available", pluginName)
    module = imp.load_source(pluginName,p)
    #module = importlib.import_module(pluginName) #alternate import method, same thing
    #classes = inspect.getmembers(sys.modules[pluginName], inspect.isclass)
@@ -76,6 +82,7 @@ engine.post(HelloEvent())
 
 ######
 # EventProfiles management
+# Note: this should be updated whenever a new user is created/deleted, or a plugin is added/removed
 # get all available Actions&Events into json files
 # so our web interface can get them
 ######
@@ -92,7 +99,7 @@ events = engine.getPluginManager().getAvailableEvents()
 eventNames = list()
 for e in events:
    eventNames.append( {'name':e.name, 'type':e.type} ) #TODO: find a way to handle event 'output' args
-f = open("internals/Globals.json", 'w')
+f = open("internals/www/Globals.json", 'w')
 try:
    f.write(json.dumps( {'actionsAvailable':actionNames, 'eventsAvailable':eventNames, 'users':userNames} ))
    

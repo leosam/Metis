@@ -8,13 +8,15 @@ from action_def import *
 
 
 class builtinEvent(Event):
-   def __init__(self):
-      super(builtinEvent,self).__init__("builtinEventType", "builtinEvent")
+   def __init__(self, type="builtinEventType", name="builtinEvent"):
+      super(builtinEvent,self).__init__(type, name)
 
 
 class builtinAction(Action):
-   def __init__(self, builtinPlugin):
-      super(builtinAction,self).__init__(type="builtinAction", name="noname", plugin=builtinPlugin)
+   def __init__(self, builtinPlugin, type="builtinAction", name="noname", plugin=None):
+      if (plugin == None):
+         plugin = builtinPlugin 
+      super(builtinAction,self).__init__(type, name, plugin)
    def __call__(self, args={}):
       logging.warning("in builtinAction! %s", args);
 
@@ -46,3 +48,7 @@ class builtinPlugin(Plugin):
       self.addEvent(builtinEvent())
       self.addAction(triggerEvent(self))
 
+   
+   def post(self, event):
+      logging.warning("Posting from builtinPlugin");
+      super(builtinPlugin, self).post(event)

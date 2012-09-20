@@ -1,0 +1,45 @@
+General requirements
+====================
+
+To run Metis, you'll need:
+
+* Python (>= 2.7)
+* Pip
+* A text-to-speech voice synthetizer (festival, espeak, ...)
+
+Platform specific requirements
+==============================
+
+Linux
+-----
+
+You will need a fully functionnal python distribution to run Metis.
+There are no further specific requirements for Linux.
+
+#### Python Packages
+you should install the following packages to match Metis dependencies:
+    
+    sudo easy_install pyttsx
+    sudo easy_install nltk
+
+#### Web Configuration Interface
+
+You will need a webserver with CGI support.
+the homepage of the Web Interface is
+    internals/www_conf.py
+    
+    chmod 755 internals/www_conf.py 
+    chmod 755 internals/*js
+    
+
+Running Metis
+=================
+
+
+Running in the foreground
+-------------------------
+
+To run Metis in the foreground execute:
+
+    python metis.py
+    
