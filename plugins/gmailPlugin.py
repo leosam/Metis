@@ -37,8 +37,8 @@ class gmailPlugin(plugin_def.Plugin):
       self.addAction(gmailAction(self))
       self.addEvent(newMailEvent())
       self.addEvent(newMailSubjectEvent())
-      self.conn = self.connect()
-      self.finished = 0
+      #self.conn = self.connect() #TOFIX with user preferences
+      self.finished = 1 #TOFIX along the rest (reput to 0)
       ####
       # PLUGIN PREFERENCES
       ####

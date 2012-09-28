@@ -29,13 +29,14 @@ class profilesUpdated(builtinEvent):
 
 # private function that actually does the work
 def __updateProfiles__(user, profiles):
-   logging.warning("updating profile for %s" %(user.name))
-   user.evtProfs = list() #clear all existing profiles
-   for p in profiles:
-      logging.info("new profile for %s contains actions for %s" %(user.name, p.event.name))
-      user.addEventProfile(p)
-   #always bind ourselves, otherwise it only works once and we can't modify the profile anymore
-   __bindProfilesUpdate__(user, globalsManagers.engine.getPluginManager())
+   if (user != None):
+      logging.warning("updating profile for %s" %(user.name))
+      user.evtProfs = list() #clear all existing profiles
+      for p in profiles:
+         logging.info("new profile for %s contains actions for %s" %(user.name, p.event.name))
+         user.addEventProfile(p)
+      #always bind ourselves, otherwise it only works once and we can't modify the profile anymore
+      __bindProfilesUpdate__(user, globalsManagers.engine.getPluginManager())
 
 
 #ensure the profilesUpdated event is binded correctly for a given user
