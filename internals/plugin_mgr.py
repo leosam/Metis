@@ -3,7 +3,7 @@ import logging
 import inspect
 import copy
 import plugin_def
-import user_def
+from userModule import *
 
 class PluginManagerClass:
    def __init__(self, evtmgr=None):
@@ -12,15 +12,20 @@ class PluginManagerClass:
       pass
 
    def post(self, event):
-      logging.warning('pluginManager posting event '+event.name)
+      logging.debug('(in pluginManager) posting event %s ' %(event.name))
       self.eventManager.post(event)
 
    def registerPlugin(self, plugin):
       self.pluginList.append(plugin)
-      for user in user_def.getUsers():
+      #TODO: choose default policy
+      # wether or not we should bind all actions for each event inside a plugin
+      # by default, as a start (so it does something when you add a plugin)
+      """
+      for u in getUsers():
          for e in plugin.getEventList():
-            ep = user_def.EventProfile(e,plugin.getActionList())
-            user.addEventProfile(ep)
+            ep = EventProfile(e,plugin.getActionList())
+            u.addEventProfile(ep)
+      """
       plugin.manager = self
       plugin.registered = 1
       plugin.start() #don't forget to start the plugin's thread

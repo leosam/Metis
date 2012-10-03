@@ -9,6 +9,7 @@ class Action(object):
          self.type = type
          self.name = name
          self.plugin = plugin
+         self.hiddenFromUI = False
 
    def __call__(self,newargs={}):
          args = copy.copy(self.init_args)
@@ -22,7 +23,7 @@ class Action(object):
             self.plugin = args['plugin']
          except KeyError:
             pass
-         logging.debug('calling Action %s(%s) with args : %s', self.name, inspect.getmembers(self,inspect.isfunction)[0], args )
+         logging.debug('calling Action %s(%s) with args : %s' %(self.name, inspect.getmembers(self,inspect.isfunction)[0], args ))
 
 class Event(object):
    def __init__(self, type=None, name="Null"):
@@ -30,4 +31,5 @@ class Event(object):
          self.name = name
          self.treated = 0
          self.actionArgs = {}
+         self.hiddenFromUI = False
 

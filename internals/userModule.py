@@ -3,21 +3,9 @@ import logging
 import inspect
 import copy
 import action_def
+from eventProfile import *
 
 #TODO: arguments names bindings in EventProfile
-
-class EventProfile:
-   def __init__(self,event,actions=list()):
-      #FIXME: check that event is an actual Event(), not just anything else
-      self.event = event
-      self.actions = actions
-   def getActions(self):
-      return self.actions
-   def addAction(self, action):
-      try:
-         self.actions.append(action)
-      except NameError ,e:
-         logging.error("Error trying to add action to eventProfile %s : %s" %(self.event.name, e) )
 
 users = list()
 def getUsers():
@@ -38,23 +26,32 @@ class User:
    def getProfileByEvent(self,event):
       for p in self.evtProfs:
          if (p.event.name == event.name):
-            logging.debug("Found profile for event ",event.name,"\n")
+            logging.debug("Found profile for event %s" %(event.name))
             return p
-      logging.debug("ERROR : Found NO profile for event ",event.name,"\n")
+      logging.debug("Warning: Found NO profile for event %s (better create one soon)" %(event.name))
       return None
    def addEventProfile(self,evtprof):
       self.evtProfs.append(evtprof)
+   #this is only for debug purposes, to print out things
+   def logProfiles(self):
+      logging.debug('User %s has:' %(self.name))
+      if (len(self.evtProfs) == 0):
+         logging.debug('\t\tNO EVENTPROFILES')
+      else:
+         logging.debug('the following profiles :')
+      for ep in self.evtProfs:
+         ep.logProfile()
    #TODO: stuff to manage EventProfiles online, per user
 
 
-from globalsManagers import *
-from eventProfileManager import __bindProfilesUpdate__
-def createNewUser(name):
+from internalBindings import __bindInternals__
+def createNewUser(name, bindInternals=True):
    if (getUserByName(name) != None):
       raise ValueError("user %s already exists" %(name))
    else:
       u = User(name)
       users.append(u)
-      __bindProfilesUpdate__(u, globalsManagers.engine.getPluginManager())
+      if (bindInternals):
+         __bindInternals__(u)
       return u
 

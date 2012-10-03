@@ -12,20 +12,22 @@ import os.path
 from watchdog.observers import Observer
 import watchdog
 
+from builtins import *
 from plugin_def import *
-from builtins   import *
 from action_def import *
-from user_def import *
-import globalsManagers
+from userModule import *
 
-#TODO: create users from Web interface
 class newUser(builtinEvent):
    def __init__(self):
-      super(builtinEvent,self).__init__(type="EventProfileEvent", name="newUser")
+      super(builtinEvent,self).__init__(type="EventProfileEvent", name="newUserEvent")
+      self.hiddenFromUI = True
 
 class profilesUpdated(builtinEvent):
    def __init__(self):
-      super(builtinEvent,self).__init__(type="EventProfileEvent", name="profilesUpdated")
+      super(builtinEvent,self).__init__(type="EventProfileEvent", name="profilesUpdatedEvent")
+      self.hiddenFromUI = True
+
+from internalBindings import __bindInternals__
 
 # private function that actually does the work
 def __updateProfiles__(user, profiles):
@@ -36,26 +38,7 @@ def __updateProfiles__(user, profiles):
          logging.info("new profile for %s contains actions for %s" %(user.name, p.event.name))
          user.addEventProfile(p)
       #always bind ourselves, otherwise it only works once and we can't modify the profile anymore
-      __bindProfilesUpdate__(user, globalsManagers.engine.getPluginManager())
-
-
-#ensure the profilesUpdated event is binded correctly for a given user
-#(no one should override that, because web interface is useless without it)
-def __bindProfilesUpdate__(user, manager):
-   logging.info("re-binding EventProfileManager");
-   prof = user.getProfileByEvent(profilesUpdated())
-   if (prof == None):
-      prof = EventProfile(profilesUpdated())
-      user.addEventProfile(prof)
-   action_already_found = False
-   action_to_add = manager.getActionByName("updateProfilesAction")
-   if (action_to_add == None):
-      raise RuntimeError("cannot find builtinAction : updateProfilesAction")
-   for a in prof.actions:
-      if (a.name == action_to_add.name):
-         action_already_found = True
-   if (not action_already_found):
-      prof.addAction( action_to_add )
+      __bindInternals__(user)
 
 
 ############
@@ -68,30 +51,32 @@ def __bindProfilesUpdate__(user, manager):
 class handleNewUser(builtinAction):
    def __init__(self, eventProfilePlugin):
       super(builtinAction,self).__init__(name="handleNewUserAction", type="EventProfileAction",plugin=eventProfilePlugin);
+      self.hiddenFromUI = True
    def __call__(self,args={}):
       try:
          name = args['userName']
-         profiles = args['profiles']
       except Exception, e:
-         logging.error("action called with wrong parameters : %s" %(e))
+         logging.error("action called with wrong parameters : expected %s but got %s" %(e,str(args)))
          return
       u = createNewUser(name)
-      __updateProfiles__(u, profiles)
+      __bindInternals__(u)
 
 class updateProfiles(builtinAction):
    def __init__(self, eventProfilePlugin):
       super(builtinAction,self).__init__(name="updateProfilesAction", type="EventProfileAction",plugin=eventProfilePlugin);
+      self.hiddenFromUI = True
    def __call__(self,args={}):
       try:
          name = args['userName']
          profiles = args['profiles']
       except Exception, e:
-         logging.error("action called with wrong parameters : %s" %(e))
+         logging.error("action called with wrong parameters : expected %s but got %s" %(e,str(args)))
          return
       u = getUserByName(name)
       __updateProfiles__(u, profiles)
 
 
+#internal representation of EventProfiles from json files
 class internalProfile():
    data = None
    profiles = list()
@@ -113,6 +98,28 @@ class EventProfileManager(builtinPlugin):
       fd = os.path.basename(path)
       (name,ext) = os.path.splitext(fd)
       return name
+
+   def loadUsersFromGlobals(self, path, manager):
+      name = self.getUserFromPath(path)
+      if (name != "Globals"):
+         raise ValueError("file '%s' doesn't contain globals variables" %(path)) #it's user-specific while we expect system-wide
+      logging.info("opening %s" %(path))
+      f = open(path,'r')
+      try:
+         logging.info("reading from %s" %(path))
+         lines = f.read()
+         logging.info("JSON from read")
+         rawdata = json.loads(lines)
+         data = rawdata
+      except Exception, e:
+         logging.error("Error : %s" %(e))
+      finally:
+         f.close()
+         logging.info("file Globals.json closed")
+      manager.users = list()
+      for u in data['users']:
+         logging.debug("found user %s" %(u) )
+         manager.users.append(u)
 
    def loadProfilesFromFile(self, path, manager):
       name = self.getUserFromPath(path)
@@ -178,20 +185,41 @@ class ActivityHandler(watchdog.events.FileSystemEventHandler,EventProfileManager
    def on_modified(self, obsEvent):
       logging.warning ("seen modified file %s" %(obsEvent) )
       path = obsEvent.src_path
-      try:
-         self.loadProfilesFromFile(path, self.eventProfileManager)
-         logging.debug("DONE!!")
-      except ValueError,e:
-         logging.info("Ignoring %s" %(e))
-      except Exception,e:
-         logging.error("CATCHED 1 Exception : %s" %(e))
-      try:
-         event = profilesUpdated()
-         name = self.eventProfileManager.getUserFromPath(path)
-         event.actionArgs = {'userName':name, 'profiles':self.eventProfileManager.profiles[name].profiles}
-         logging.info("will post event %s" %(event.name) )
-         self.eventProfileManager.post(event)
-         logging.debug("POSTED %s" %(event.name) )
-      except Exception,e:
-         logging.error("CATCHED 2 Exception : %s" %(e))
+      name = self.getUserFromPath(path)
+      if (name != "Globals"): #update eventProfile for the user
+         try:
+            self.loadProfilesFromFile(path, self.eventProfileManager)
+            logging.debug("DONE!!")
+         except ValueError,e:
+            logging.info("Ignoring %s" %(e))
+         except Exception,e:
+            logging.error("Error (1) Exception : %s" %(e))
+         try:
+            event = profilesUpdated()
+            name = self.eventProfileManager.getUserFromPath(path)
+            event.actionArgs = {'userName':name, 'profiles':self.eventProfileManager.profiles[name].profiles}
+            logging.info("(EventProfileManager 1)will post event %s" %(event.name) )
+            self.eventProfileManager.post(event)
+            logging.debug("POSTED %s" %(event.name) )
+         except Exception,e:
+            logging.error("Error (2) Exception : %s" %(e))
+      else: #update users list
+         try:
+            logging.debug("TRying to update Globals\n")
+            self.loadUsersFromGlobals(path, self.eventProfileManager)
+            logging.debug("DONE!!")
+         except ValueError,e:
+            logging.info("Ignoring %s" %(e))
+         except Exception,e:
+            logging.error("Error (3) Exception : %s" %(e))
+         try:
+            for u in self.eventProfileManager.users:
+               if (getUserByName(u['name']) == None):
+                  event = newUser()
+                  event.actionArgs = {'userName':u['name']}
+                  logging.info("(EventProfileManager 2) will post event %s for user %s creation" %(event.name, u['name']) )
+                  self.eventProfileManager.post(event)
+                  logging.debug("POSTED %s" %(event.name) )
+         except Exception,e:
+            logging.error("Error (4) Exception : %s" %(e))
 
