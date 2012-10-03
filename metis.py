@@ -5,6 +5,7 @@ sys.path.append('plugins')
 
 import threading
 import os
+import stat
 import time
 import logging
 import inspect
@@ -14,13 +15,21 @@ import string
 import imp
 import json
 
+#ACTIVATE DEBUG LEVEL LOGGING
+"""
+logging.getLogger().setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+"""
+
+from globalsManagers import *
 from action_def import *
-#from plugin_mgr import *
 from plugin_def import *
-from user_def import *
+from userModule import *
 from builtins import *
 from eventEngine import *
-from globalsManagers import *
 
 ##### MAIN ####
 
@@ -28,11 +37,31 @@ from globalsManagers import *
 #init
 ######
 
+#first thing to do, before creating users
+#(because we need to have internal actions & events correctly binded into every user's profile)
+registerInternalPlugins()
 
 # TODO: replace with actual user config, most likely read from file
 #createNewUser('Test2')
 #createNewUser('Test')
 user = createNewUser("Default")
+
+
+#DEBUG STUFF
+"""
+epu = profilesUpdated()
+
+ep = user.getProfileByEvent(epu)
+if (ep != None):
+   logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(user.name, epu.name))
+   for a in ep.getActions():
+      logging.debug(a.name)
+else:
+   logging.error("BEWARE! user %s has no EventProfile attached!!" %(user.name))
+
+epu.actionArgs['userName'] = 'Default'
+engine.post(epu)
+"""
 
 #bind to test EventProfileManager logic
 # NOTE : we need a system to get default bindings (at least for builtin plugins)
@@ -64,7 +93,7 @@ for p in glob.glob('plugins/*.py'):
 ######
 
 #Post a simple event
-engine.post(HelloEvent()) 
+#engine.post(HelloEvent()) 
 
 #Bind newMailEvent with sayAction 
 #sayaction = engine.getPluginManager().getActionByName("sayAction")
@@ -77,8 +106,8 @@ engine.post(HelloEvent())
 
 ######
 # EventProfiles management
-# Note: this should be updated whenever a new user is created/deleted, or a plugin is added/removed
-# get all available Actions&Events into json files
+# FIXME: this should be updated whenever a new user is created/deleted, or a plugin is added/removed
+# get all available Actions&Events into json file
 # so our web interface can get them
 ######
 userNames = list()
@@ -88,12 +117,14 @@ for e in getUsers():
 actions = engine.getPluginManager().getAvailableActions()
 actionNames = list()
 for a in actions:
-   actionNames.append( {'name':a.name, 'type':a.type }) #TODO: find a way to handle action 'input' args
+   if (not a.hiddenFromUI):
+      actionNames.append( {'name':a.name, 'type':a.type }) #TODO: find a way to handle action 'input' args
 
 events = engine.getPluginManager().getAvailableEvents()
 eventNames = list()
 for e in events:
-   eventNames.append( {'name':e.name, 'type':e.type} ) #TODO: find a way to handle event 'output' args
+   if (not e.hiddenFromUI):
+      eventNames.append( {'name':e.name, 'type':e.type} ) #TODO: find a way to handle event 'output' args
 f = open("internals/www/Globals.json", 'w')
 try:
    f.write(json.dumps( {'actionsAvailable':actionNames, 'eventsAvailable':eventNames, 'users':userNames} ))
@@ -107,6 +138,12 @@ try:
    """
 finally:
    f.close()
+
+#grants read & write permissions to all, since webserver should have read/write access as well as us
+os.chmod("internals/www/Globals.json", 
+      stat.S_IWRITE | stat.S_IREAD | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+
+#TODO: set correct permissions on Globals.json so that Webserver can write it too
 
 ######
 # Generic start

@@ -23,7 +23,7 @@ class Plugin(threading.Thread):
 	
     def post(self, event):
        if (self.registered):
-          logging.warning('plugin '+self.name+"posting event "+event.name)
+          logging.debug('(in plugin '+self.name+") posting event "+event.name)
           self.manager.post(event)
        else:
           logging.warning('plugin '+self.name+"can't post "+event.name+" because it's not registered")

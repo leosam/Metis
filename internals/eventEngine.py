@@ -9,7 +9,7 @@ import inspect
 import copy
 import action_def
 import plugin_def
-import user_def
+import userModule
 import plugin_mgr
 
 class EventEngine(threading.Thread):
@@ -23,7 +23,7 @@ class EventEngine(threading.Thread):
       return self.PluginManager
 
    def post(self,task):
-      logging.warning('EventEngine posting event '+task.name)
+      logging.debug('(in EventEngine) posting event %s' %(task.name))
       self.eventqueue.put(task)
 
    def stopengine(self):
@@ -34,11 +34,18 @@ class EventEngine(threading.Thread):
       logging.warning("STARTING")
       while(not self.finished):
          newEvent = self.eventqueue.get() #python's bug: can't be killed by Ctrl+C
-         logging.debug("get event %s", newEvent.name)
+         logging.debug("get event %s" %(newEvent.name))
          newTasks = list()
-         for u in user_def.getUsers():
+         for u in userModule.getUsers():
+            logging.warning("eventEngine sees user %s" %(u.name))
             ep = u.getProfileByEvent(newEvent)
             if (ep != None):
+               logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, newEvent.name))
+               for a in ep.getActions():
+                  logging.debug(a.name)
+               #TOTO: define policy
+               # should we execute each action for each user?
+               # some (at least internals) actions need to be executed only once... not on a per-user basis (typically user creation...)
                newTasks.extend(ep.getActions())
             else:
                logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
@@ -46,16 +53,17 @@ class EventEngine(threading.Thread):
          if (len(newTasks) <= 0):
             logging.warning("no action to execute for event %s" %(newEvent.name))
          for t in newTasks:
+            logging.debug("eventEngine executing %s for event %s (args are %s)" %(t.name, newEvent.name, newEvent.actionArgs))
             t(newEvent.actionArgs)
             t.treated = 1
       
-      time.sleep(5); #TODO: remove ugly sleep and actually wait on all plugins to stop instead
+      time.sleep(5) #TODO: remove ugly sleep and actually wait on all plugins to stop instead
       logging.warning("STOPPING")
 
 def endtask(**args):
-   args['engine'].post(action_def.Action(args['engine'].stopengine));
+   args['engine'].post(action_def.Action(args['engine'].stopengine))
 
 def dummytask(**args):
-   logging.warning("DUMMY TASK, args: %s", str(args))
+   logging.warning("DUMMY TASK, args: %s" %(str(args)))
 
 
