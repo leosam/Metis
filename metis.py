@@ -5,6 +5,7 @@ sys.path.append('plugins')
 
 import threading
 import os
+import stat
 import time
 import logging
 import inspect
@@ -14,12 +15,14 @@ import string
 import imp
 import json
 
+#ACTIVATE DEBUG LEVEL LOGGING
+"""
 logging.getLogger().setLevel(logging.DEBUG)
 
 # create console handler and set level to debug
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-
+"""
 
 from globalsManagers import *
 from action_def import *
@@ -135,6 +138,10 @@ try:
    """
 finally:
    f.close()
+
+#grants read & write permissions to all, since webserver should have read/write access as well as us
+os.chmod("internals/www/Globals.json", 
+      stat.S_IWRITE | stat.S_IREAD | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
 
 #TODO: set correct permissions on Globals.json so that Webserver can write it too
 
