@@ -44,14 +44,14 @@ class User:
    #TODO: stuff to manage EventProfiles online, per user
 
 
-from internalBindings import __bindInternals__
+#from internalBindings import __bindInternals__
 def createNewUser(name, bindInternals=True):
    if (getUserByName(name) != None):
       raise ValueError("user %s already exists" %(name))
    else:
       u = User(name)
       users.append(u)
-      if (bindInternals):
-         __bindInternals__(u)
+ #     if (bindInternals):
+ #        __bindInternals__(u)
       return u
 
