@@ -96,13 +96,13 @@ class EventEngine(threading.Thread):
             else:
                logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
 
-         newEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
+         nextEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
          
          if (len(newTasks) <= 0):
             logging.warning("no action to execute for event %s" %(nextEvent.name))
          
          for t in newTasks:
-            logging.debug("eventEngine executing %s for event %s (args are %s)" %(t.name, nextEvent.name, newEvent.actionArgs))
+            logging.debug("eventEngine executing %s for event %s (args are %s)" %(t.name, nextEvent.name, nextEvent.actionArgs))
             t(nextEvent.actionArgs)
             t.treated = 1
       

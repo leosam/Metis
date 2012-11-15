@@ -9,6 +9,7 @@ class Action(object):
          self.type = type
          self.name = name
          self.plugin = plugin
+         self.grouped = True  #
          self.hiddenFromUI = False
 
    def __call__(self,newargs={}):
