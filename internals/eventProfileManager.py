@@ -155,6 +155,7 @@ class EventProfileManager(builtinPlugin):
                actions.append( actionHandle )
          e = manager.manager.getEventByName(event['name'])
          logging.debug("found event %s, adding actions %s" %(e,actions) )
+         #FIXME: adapt to Bindings system
          p.profiles.append(EventProfile(e, actions))
       manager.profiles[name].profiles = p.profiles
       logging.info("loadProfilesFromFile DONE")

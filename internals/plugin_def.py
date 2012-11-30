@@ -5,6 +5,7 @@ import logging
 import inspect
 import copy
 import action_def
+import eventEngine
 
 class Plugin(threading.Thread):
     def __init__(self):
@@ -24,7 +25,7 @@ class Plugin(threading.Thread):
     def post(self, event):
        if (self.registered):
           logging.debug('(in plugin '+self.name+") posting event "+event.name)
-          self.manager.post(event)
+          eventEngine.TheEventEngine().post(event)
        else:
           logging.warning('plugin '+self.name+"can't post "+event.name+" because it's not registered")
 

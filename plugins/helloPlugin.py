@@ -6,11 +6,13 @@ import action_def
 class HelloEvent(action_def.Event):
    def __init__(self):
       super(HelloEvent,self).__init__("HelloEventType", "HelloEvent")
+      self.addParameter("helloMsg") #declare exported variables
+      self.eventArgs = {'helloMsg' : "Hello, World!"} #instanciate them
 
 
 class HelloAction(action_def.Action):
    def __init__(self, HelloPlugin):
-      super(HelloAction,self).__init__("HelloAction", "HelloAction1", HelloPlugin)
+      super(HelloAction,self).__init__("HelloAction", "HelloAction", HelloPlugin)
    def __call__(self, args={}):
       logging.warning("Hello from HelloAction! %s", args)
 

@@ -17,6 +17,8 @@ class festivalEventSay(Event):
 class sayAction(Action):
    def __init__(self, plugin):
       super(sayAction,self).__init__("festivalActionType", "sayAction", plugin)
+      self.addParameter("text") #we expect to receive an argument named 'text'
+
    def __call__(self, args={}):
       try :
          logging.warning("in sayAction : text is %s", args['text']);

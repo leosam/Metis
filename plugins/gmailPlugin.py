@@ -15,13 +15,12 @@ MY_EMAIL = ''
 MY_TOKEN = ''  # your token
 MY_SECRET = ''                      # your secret
 
-class newMailSubjectEvent(action_def.Event):
-   def __init__(self):
-      super(newMailSubjectEvent,self).__init__("gmailEventType", "newMailSubjectEvent")
-
 class newMailEvent(action_def.Event):
    def __init__(self):
       super(newMailEvent,self).__init__("gmailEventType", "newMailEvent")
+      self.addParameter("from")
+      self.addParameter("subject")
+      self.addParameter("body")
 
 #TO become sendMailAction
 class gmailAction(action_def.Action):
@@ -75,12 +74,12 @@ class gmailPlugin(plugin_def.Plugin):
                   if ret == 'OK':
                      subject = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.actionArgs = {'subject':copy.copy(subject)}
+                     sevt.eventArgs = {'subject':copy.copy(subject)}
                   (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM)])')
                   if ret == 'OK':
                      fromstr = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.actionArgs = {'subject':copy.copy(fromstr)+copy.copy(subject)}
+                     sevt.eventArgs = {'subject':copy.copy(fromstr)+copy.copy(subject)}
                   self.post(sevt)
 
                   #now fetch the whole thing
@@ -105,10 +104,10 @@ class gmailPlugin(plugin_def.Plugin):
                         bodytext = bodystring #if there's no text, then get the stripped html version 
 
                      evt = newMailEvent()
-                     evt.actionArgs = {'mail':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
-                     evt.actionArgs = {'from':copy.copy(fromstr)}
-                     evt.actionArgs = {'subject':copy.copy(subject)}
-                     evt.actionArgs = {'body':copy.copy(bodytext)}
+                     evt.eventArgs = {'mail':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
+                     evt.eventArgs = {'from':copy.copy(fromstr)}
+                     evt.eventArgs = {'subject':copy.copy(subject)}
+                     evt.eventArgs = {'body':copy.copy(bodytext)}
                      self.post(evt)
                      logging.info("newMail:"+bodytext)
                      logging.debug(msg_str)

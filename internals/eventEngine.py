@@ -10,6 +10,7 @@ import action_def
 import plugin_def
 import userModule
 import plugin_mgr
+import eventProfileBindings
 
 class EventEngine(threading.Thread):
    '''
@@ -20,19 +21,10 @@ class EventEngine(threading.Thread):
       '''
       Constructor
       '''
-
       threading.Thread.__init__(self)
       self.eventqueue = Queue.Queue()
       self.finished = 0
-      self.PluginManager = plugin_mgr.PluginManagerClass(self)
 
-
-   def getPluginManager(self):
-      '''
-      Returns the PluginManager
-      '''
-
-      return self.PluginManager
 
 
    def post(self,event):
@@ -56,6 +48,9 @@ class EventEngine(threading.Thread):
       self.finished = 1
 
       logging.warning("SETTING TO STOP")
+   def updateArgs(self, args, bindings, event):
+      for b in bindings:
+         args[b.actionArgument] = event.eventArgs[b.eventArgument]
 
 
    def run(self):
@@ -71,9 +66,11 @@ class EventEngine(threading.Thread):
          nextEvent = self.eventqueue.get() #python's bug: can't be killed by Ctrl+C
          logging.debug("get event %s" %(nextEvent.name))
          
-         # TODO: clarify -> What are these newTasks?
-         # These newTasks contains all actions we have to execute, with the event parameter names bindings
-         newTasks = list()
+         # Temporarily Store actions to execute
+         actionsToExec = list()
+         
+         #Optional, but at this point the engine can add info on users or whatever state it wants and give that to the action
+         nextEvent.eventArgs.update({'testArg':"fromEngine"}) 
          
          # Get users that might be interested in this event
          for u in userModule.getUsers():
@@ -84,33 +81,22 @@ class EventEngine(threading.Thread):
             
             if (ep != None):
                logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, nextEvent.name))
-               for b in ep.getBindings():
-                  logging.debug(b.action.name)
-                  
-                  # TODO: define policy
-                  #   should we execute each action for each user?
-                  #   some (at least internals) actions need to be executed only once... 
-                  #   not on a per-user basis (typically user creation...)
-                  
-               newTasks.extend(ep.getBindings())
+               for action in ep.getActions():
+                  newArgs = copy.copy(nextEvent.eventArgs) #copy args from event before modifying them
+                  self.updateArgs(newArgs, ep.getBindingsForAction(action), nextEvent)
+                  actionsToExec.append([action, newArgs])
 
             else:
                logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
          
-         #Optional, but at this point the engine can add info on users or whatever state it wants and give that to the action
-         nextEvent.actionArgs.update({'testArg':"fromEngine"}) 
-         
-         if (len(newTasks) <= 0):
+         if (len(actionsToExec) <= 0):
             logging.warning("no action to execute for event %s, ignoring it" %(nextEvent.name))
          
-         for t in newTasks:
-            logging.debug("eventEngine executing %s for event %s (event args are %s)" %(t.action.name, nextEvent.name, nextEvent.actionArgs))
-            actionArgs = copy(nextEvent.actionArgs) #construct a copy of args from event
-            actionArgs[t.actionArgument] = nextEvent.actionArgs[t.eventArgument] #apply our bindings in the copy
-            t(actionArgs)
-            t.treated = 1
+         for a,args in actionsToExec:
+            a(args)
+            a.treated = 1
       
-      time.sleep(5) #TODO: remove ugly sleep and actually wait on synced plugins (eg. voice) to end processing
+      time.sleep(5) #TODO: remove ugly sleep and actually wait on synced plugins (eg. voice) to end processing, when needed
       logging.warning("STOPPING")
 
 
@@ -118,9 +104,9 @@ class EventEngine(threading.Thread):
 # Singleton methodology...
 class TheEventEngine(EventEngine):
 
-   __instance = None
+   __instance = EventEngine()
 
-   def __new__(cls):
-      if cls.__instance == None:
-         cls.__instance = EventEngine.__new__(cls)
-      return cls.__instance
+   def __init__(self):
+      self.__dict__ = TheEventEngine.__instance.__dict__
+      self.__class__ = TheEventEngine.__instance.__class__
+

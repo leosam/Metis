@@ -1,6 +1,6 @@
-import globalsManagers
 import eventProfileManager as ePM
 from plugin_def import *
+from plugin_mgr import *
 from action_def import *
 from eventProfile import *
 
@@ -34,7 +34,7 @@ def __bindEventToAction__(user, pluginManager, event, actionName):
 #(no one should remove anything from that, because web interface is useless without it)
 def __bindInternals__(user):
    PUEvent = ePM.profilesUpdated()
-   __bindEventToAction__(user,globalsManagers.engine.getPluginManager(),PUEvent,"updateProfilesAction")
+   __bindEventToAction__(user,ThePluginManager(),PUEvent,"updateProfilesAction")
    NUEvent = ePM.newUser()
-   __bindEventToAction__(user,globalsManagers.engine.getPluginManager(),NUEvent,"handleNewUserAction")
+   __bindEventToAction__(user,ThePluginManager(),NUEvent,"handleNewUserAction")
 

@@ -6,13 +6,8 @@ import plugin_def
 from userModule import *
 
 class PluginManagerClass:
-   def __init__(self, evtmgr=None):
-      self.eventManager = evtmgr
+   def __init__(self):
       self.pluginList = list()
-
-   def post(self, event):
-      logging.debug('(in pluginManager) posting event %s ' %(event.name))
-      self.eventManager.post(event)
 
    def registerPlugin(self, plugin):
       self.pluginList.append(plugin)
@@ -48,4 +43,14 @@ class PluginManagerClass:
          if (event.name == eventName):
             return event
       return None
+
+# To be able to instantiate a sole PluginManagerClass we need to do some dirty tricks:
+# Singleton methodology...
+class ThePluginManager(PluginManagerClass):
+
+   __instance = PluginManagerClass()
+
+   def __init__(self):
+      self.__dict__ = ThePluginManager.__instance.__dict__
+      self.__class__ = ThePluginManager.__instance.__class__
 

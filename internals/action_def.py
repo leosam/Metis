@@ -7,8 +7,11 @@ class Action(object):
          self.type = type
          self.name = name
          self.plugin = plugin
-         self.grouped = True  #
+         self.grouped = False  #
          self.hiddenFromUI = False
+         self.expectedArgs = list()
+   def addParameter(self, name):
+         self.expectedArgs.append(name)
 
    def __call__(self,newargs={}):
          args = copy.copy(self.init_args)
@@ -29,6 +32,9 @@ class Event(object):
          self.type = type
          self.name = name
          self.treated = 0
-         self.actionArgs = {}
+         self.eventArgs = {}
          self.hiddenFromUI = False
+         self.parameterNames = list()  #exported list of keys used in actionArgs
+   def addParameter(self, name):
+         self.parameterNames.append(name)
 

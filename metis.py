@@ -21,6 +21,7 @@ import importlib
 import string
 import imp
 import json
+import config
 
 #ACTIVATE DEBUG LEVEL LOGGING
 """
@@ -34,6 +35,7 @@ ch.setLevel(logging.DEBUG)
 #from globalsManagers import *
 from action_def import *
 from plugin_def import *
+from plugin_mgr import *
 from userModule import *
 from builtins import *
 from eventEngine import *
@@ -53,15 +55,9 @@ def main():
    # First thing to do, before creating users is to correctly bind events & actions to the user's profile
    #registerInternalPlugins()
    builtins = builtinPlugin()
-   engine.getPluginManager().registerPlugin(builtins)
-   epm = EventProfileManager()
-   engine.getPluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
-
-   # TODO: replace with actual user config, most likely read from file
-   #createNewUser('Test2')
-   #createNewUser('Test')
-   user = createNewUser("Default")
-
+   ThePluginManager().registerPlugin(builtins)
+   #epm = EventProfileManager()
+   #ThePluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
 
    #DEBUG STUFF
    '''
@@ -84,7 +80,7 @@ def main():
    #bind to test EventProfileManager logic
    # NOTE : we need a system to get default bindings (at least for builtin plugins)
    #prof = EventProfile(profilesUpdated())
-   #prof.addAction( engine.getPluginManager().getActionByName("updateProfilesAction") )
+   #prof.addAction( ThePluginManager().getActionByName("updateProfilesAction") )
    #user.addEventProfile(prof)
 
    ### Plugin auto-loading stuff
@@ -106,7 +102,19 @@ def main():
          if (c[0] == pluginClassName): #find the plugin's main class #TOFIX: try to find Plugin in parents of this class?
             newplugin = c[1]()
             logging.warning("registering new plugin %s",pluginClassName)
-            engine.getPluginManager().registerPlugin(newplugin)
+            ThePluginManager().registerPlugin(newplugin)
+
+
+   ######
+   # create Users
+   ######
+   # TODO: replace with actual user config, most likely read from file
+   #createNewUser('Test2')
+   #createNewUser('Test')
+   #user = createNewUser("Default")
+   parser = config.Config("internals/metis.conf")
+
+
    ######
    # for debug & test purposes
    ######
@@ -115,7 +123,7 @@ def main():
    #engine.post(HelloEvent()) 
 
    #Bind newMailEvent with sayAction 
-   #sayaction = engine.getPluginManager().getActionByName("sayAction")
+   #sayaction = ThePluginManager().getActionByName("sayAction")
    #user.getProfileByEvent(newMailEvent()).addAction(sayaction)
 
    #Test default festival saying
@@ -133,13 +141,13 @@ def main():
    for e in getUsers():
       userNames.append( {'name':e.name} )
 
-   actions = engine.getPluginManager().getAvailableActions()
+   actions = ThePluginManager().getAvailableActions()
    actionNames = list()
    for a in actions:
       if (not a.hiddenFromUI):
          actionNames.append( {'name':a.name, 'type':a.type }) #TODO: find a way to handle action 'input' args
 
-   events = engine.getPluginManager().getAvailableEvents()
+   events = ThePluginManager().getAvailableEvents()
    eventNames = list()
    for e in events:
       if (not e.hiddenFromUI):
