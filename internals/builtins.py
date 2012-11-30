@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import logging
 import inspect
 import copy

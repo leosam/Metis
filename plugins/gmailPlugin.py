@@ -70,18 +70,18 @@ class gmailPlugin(plugin_def.Plugin):
                if (message != ''):
                   logging.info('Processing : %s', message)
                   sevt = newMailSubjectEvent()
-                  self.post(sevt)
                   #fetch only the subject, not marking the mail as read
                   (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
                   if ret == 'OK':
                      subject = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.actionArgs = {'text':copy.copy(subject)}
+                     sevt.actionArgs = {'subject':copy.copy(subject)}
                   (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM)])')
                   if ret == 'OK':
                      fromstr = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.actionArgs = {'text':copy.copy(fromstr)+copy.copy(subject)}
+                     sevt.actionArgs = {'subject':copy.copy(fromstr)+copy.copy(subject)}
+                  self.post(sevt)
 
                   #now fetch the whole thing
                   msg_str = ""
@@ -105,7 +105,10 @@ class gmailPlugin(plugin_def.Plugin):
                         bodytext = bodystring #if there's no text, then get the stripped html version 
 
                      evt = newMailEvent()
-                     evt.actionArgs = {'text':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
+                     evt.actionArgs = {'mail':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
+                     evt.actionArgs = {'from':copy.copy(fromstr)}
+                     evt.actionArgs = {'subject':copy.copy(subject)}
+                     evt.actionArgs = {'body':copy.copy(bodytext)}
                      self.post(evt)
                      logging.info("newMail:"+bodytext)
                      logging.debug(msg_str)

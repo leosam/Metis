@@ -43,9 +43,10 @@ def __updateProfiles__(user, profiles):
 
 ############
 # IMPORTANT NOTE: 
-#  we use Actions here to prevent
-#  any race condition when accessing EventProfiles 
-#  ie. the eventManager is alone processing those
+#  we define builtin Actions here to prevent
+#  any race condition when accessing EventProfiles
+#  ie. the eventManager is alone processing those profiles
+#  the eventProfileManager does not modify them directly
 ###########
 
 class handleNewUser(builtinAction):

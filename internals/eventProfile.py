@@ -2,31 +2,30 @@
 import logging
 import inspect
 import copy
-
-#TODO: arguments names bindings in EventProfile
+import eventProfileBindings
 
 class EventProfile:
-   def __init__(self,event,actions=None):
+   def __init__(self,event):
       #FIXME: check that event is an actual Event(), not just anything else
       self.event = event
-      #Note:we can't create an empty list with default parameters, because then this list would be shared across all profiles, and we don't want that...
-      if (actions == None):
-         self.actions = list()
-      else:
-         self.actions = actions
-   def getActions(self):
-      return self.actions
-   def addAction(self, action):
+      self.bindings = list()
+   def getBindings(self):
+      return self.bindings
+   def addBinding(self, eventArgument, action, actionArgument):
+      b = eventProfileBinding(self.event, eventArgument, action, actionArgument)
+      self.addBinding(b)
+   def addBinding(self, binding):
       try:
-         self.actions.append(action)
+         self.bindings.append(binding)
       except NameError ,e:
-         logging.error("Error trying to add action to eventProfile %s : %s" %(self.event.name, e) )
+         logging.error("Error trying to add binding to eventProfile %s : %s" %(self.event.name, e) )
    #this is only for debug purposes, to print out things
    def logProfile(self):
       logging.debug('eventProfile for event %s has' %(self.event.name))
-      if (len(self.actions) == 0):
-         logging.debug('\t\tNO ACTIONS')
+      if (len(self.bindings) == 0):
+         logging.debug('\t\tNO bindingS')
       else:
-         logging.debug('the following actions :')
-      for a in self.actions:
-         logging.debug('\t%s' %(a.name))
+         logging.debug('the following bindings :')
+      for a in self.bindings:
+         a.logBinding
+         log.debug('\t')

@@ -9,7 +9,6 @@ class PluginManagerClass:
    def __init__(self, evtmgr=None):
       self.eventManager = evtmgr
       self.pluginList = list()
-      pass
 
    def post(self, event):
       logging.debug('(in pluginManager) posting event %s ' %(event.name))
@@ -20,12 +19,6 @@ class PluginManagerClass:
       #TODO: choose default policy
       # wether or not we should bind all actions for each event inside a plugin
       # by default, as a start (so it does something when you add a plugin)
-      """
-      for u in getUsers():
-         for e in plugin.getEventList():
-            ep = EventProfile(e,plugin.getActionList())
-            u.addEventProfile(ep)
-      """
       plugin.manager = self
       plugin.registered = 1
       plugin.start() #don't forget to start the plugin's thread

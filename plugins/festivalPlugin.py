@@ -23,7 +23,7 @@ class sayAction(Action):
       except KeyError:
          args['text'] = "Hello, I'm the new assistant"
       logging.warning("in sayAction : %s", args);
-      self.plugin.syncSay(args['text'])
+      self.plugin.syncSay(args['spokenText'])
 
 
 class festivalPlugin(Plugin):
@@ -37,7 +37,6 @@ class festivalPlugin(Plugin):
          logging.warning("pyttsx initialized");
       else:
          logging.warning("FestivalPlugin initialized");
-
 
    def run(self):
       if (not self.useFestival):

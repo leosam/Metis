@@ -72,6 +72,7 @@ class EventEngine(threading.Thread):
          logging.debug("get event %s" %(nextEvent.name))
          
          # TODO: clarify -> What are these newTasks?
+         # These newTasks contains all actions we have to execute, with the event parameter names bindings
          newTasks = list()
          
          # Get users that might be interested in this event
@@ -83,30 +84,33 @@ class EventEngine(threading.Thread):
             
             if (ep != None):
                logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, nextEvent.name))
-               for a in ep.getActions():
-                  logging.debug(a.name)
+               for b in ep.getBindings():
+                  logging.debug(b.action.name)
                   
                   # TODO: define policy
                   #   should we execute each action for each user?
                   #   some (at least internals) actions need to be executed only once... 
                   #   not on a per-user basis (typically user creation...)
                   
-               newTasks.extend(ep.getActions())
+               newTasks.extend(ep.getBindings())
 
             else:
                logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
-
-         nextEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
+         
+         #Optional, but at this point the engine can add info on users or whatever state it wants and give that to the action
+         nextEvent.actionArgs.update({'testArg':"fromEngine"}) 
          
          if (len(newTasks) <= 0):
-            logging.warning("no action to execute for event %s" %(nextEvent.name))
+            logging.warning("no action to execute for event %s, ignoring it" %(nextEvent.name))
          
          for t in newTasks:
-            logging.debug("eventEngine executing %s for event %s (args are %s)" %(t.name, nextEvent.name, nextEvent.actionArgs))
-            t(nextEvent.actionArgs)
+            logging.debug("eventEngine executing %s for event %s (event args are %s)" %(t.action.name, nextEvent.name, nextEvent.actionArgs))
+            actionArgs = copy(nextEvent.actionArgs) #construct a copy of args from event
+            actionArgs[t.actionArgument] = nextEvent.actionArgs[t.eventArgument] #apply our bindings in the copy
+            t(actionArgs)
             t.treated = 1
       
-      time.sleep(5) #TODO: remove ugly sleep and actually wait on all plugins to stop instead
+      time.sleep(5) #TODO: remove ugly sleep and actually wait on synced plugins (eg. voice) to end processing
       logging.warning("STOPPING")
 
 
