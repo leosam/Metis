@@ -50,7 +50,10 @@ class EventEngine(threading.Thread):
       logging.warning("SETTING TO STOP")
    def updateArgs(self, args, bindings, event):
       for b in bindings:
-         args[b.actionArgument] = event.eventArgs[b.eventArgument]
+         try:
+            args[b.actionArgument] = event.eventArgs[b.eventArgument]
+         except KeyError, e:
+            logging.error("Argument malformed (most likely a typo in config file) : %s" %(e))
 
 
    def run(self):

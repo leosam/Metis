@@ -35,7 +35,6 @@ class gmailPlugin(plugin_def.Plugin):
       super(gmailPlugin,self).__init__();
       self.addAction(gmailAction(self))
       self.addEvent(newMailEvent())
-      self.addEvent(newMailSubjectEvent())
       #self.conn = self.connect() #TOFIX with user preferences
       self.finished = 1 #TOFIX along the rest (reput to 0)
       ####
@@ -68,19 +67,15 @@ class gmailPlugin(plugin_def.Plugin):
             for message in messages[0].split(' '):
                if (message != ''):
                   logging.info('Processing : %s', message)
-                  sevt = newMailSubjectEvent()
                   #fetch only the subject, not marking the mail as read
                   (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
                   if ret == 'OK':
                      subject = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.eventArgs = {'subject':copy.copy(subject)}
                   (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM)])')
                   if ret == 'OK':
                      fromstr = mesginfo[0][1] #contains "Subject: "+actual subject
                      logging.info(mesginfo)
-                     sevt.eventArgs = {'subject':copy.copy(fromstr)+copy.copy(subject)}
-                  self.post(sevt)
 
                   #now fetch the whole thing
                   msg_str = ""

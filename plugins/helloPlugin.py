@@ -13,6 +13,9 @@ class HelloEvent(action_def.Event):
 class HelloAction(action_def.Action):
    def __init__(self, HelloPlugin):
       super(HelloAction,self).__init__("HelloAction", "HelloAction", HelloPlugin)
+      self.addParameter("world") #we expect to receive an argument named 'world'
+      self.addParameter("arg2") #we expect to receive an argument named 'arg2'
+
    def __call__(self, args={}):
       logging.warning("Hello from HelloAction! %s", args)
 

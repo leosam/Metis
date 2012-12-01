@@ -59,7 +59,7 @@ print "</ul>"
 
 
 print "   <h3>Events</h3>"
-print "   <ul data-bind='foreach: events, visible: events().length > 0'>"
+print "   <ul data-bind='foreach: globalEvents, visible: globalEvents().length > 0'>"
 print "      <li>"
 print "      <input data-bind='value: name'/>"
 print "      <a href='#' data-bind='click: $root.addEvent'>Add</a>"
@@ -112,9 +112,10 @@ print "<button data-bind='click: newUser'>Create New User</button>"
 
 
 print "   <h3>Events</h3>"
-print "   <ul data-bind='foreach: events, visible: events().length > 0'>"
+print "   <ul data-bind='foreach: globalEvents, visible: globalEvents().length > 0'>"
 print "      <li>"
 print "      <input data-bind='value: name'/>"
+#print "<pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>"   #USEFUL DEBUG!!
 print "      <a href='#' data-bind='click: $root.addEvent'>Add</a>"
 print "      </li> "
 print "   </ul>"
@@ -129,7 +130,40 @@ print "   <tr data-bind='foreach: userEvents, visible: userEvents().length > 0' 
 #print "      <div class='eventNameBox' data-bind='text: name' /> "
 #print "      </td> "
 print "      <td data-bind='value: name' id=graphContainerTD>"
-print "      <div data-bind='attr: {\"id\": name}, text: name' style='min-width: 500px; min-height: 300px; margin: 0 auto;' ></div>"
+#print "      <div data-bind='attr: {\"id\": name}, text: name' style='min-width: 500px; min-height: 300px; margin: 0 auto;' ></div>"
+
+#print "<pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>"   #USEFUL DEBUG!!
+print "           <table border=1>"
+print "           <tr>"
+print "           <td>"
+print "              <ul data-bind='foreach: parameterNames'>"
+print "                 <li>"
+#TODO: change input into nice eye-candy box
+print "                 <input data-bind='value: $data'/>"
+print "                 </li> "
+print "              </ul>"
+print "           </td>"
+print "           <td>"
+print "           <h3 data-bind='visible: actions().length > 0, text:name'></h3>"
+print "              <ul data-bind='foreach: actions, visible: actions().length > 0'>"
+print "                 <li>"
+print "                 <input data-bind='value: name, disable : removed()'/>"
+print "                    <ul data-bind='foreach: expectedArgs, visible: removed()==false'>"
+print "                       <li>"
+#TODO: change input into nice eye-candy box
+#TODO: allow binding between boxes, add logic to handle those bindings
+print "                       <input data-bind='value: $data, disable: $parents[0].removed()'/>"
+print "                       </li> "
+print "                    </ul>"
+print "                 <a href='#' data-bind='click: $parents[1].removeAction'>Delete</a>"
+print "                 <a href='#' data-bind='click: $parents[1].addAction'>Add</a>"
+print "                 </li> "
+print "              </ul>"
+print "           </td>"
+print "           </tr>"
+print "           </table>"
+
+
 print "      <div style='text-align: center;'>"
 print "        <a href='#' data-bind='click: $root.removeEvent' >Skip from EventProfile (remove all actions associated)</a>"
 print "      </div>"
@@ -139,6 +173,10 @@ print "   </ul>"
 
 print "   <button data-bind='click: save'>Save</button>"
 print "</body>"
+
+######
+#here comes the eye-candy stuff
+######
 
 print "<script type='text/javascript'>"
 print "  var viewModel;"
@@ -162,7 +200,7 @@ print "            plotOptions: {"
 print "                pie: {"
 print "                    allowPointSelect: true,"
 print "                    cursor: 'pointer',"
-print "                    events: {"
+print "                    events: {"  #events? or globalEvents?
 print "                       click: function(handle){"
                                  #here handle.point is directly the KO observable Action
 #print "                          console.log(handle.point);"
@@ -207,9 +245,9 @@ print "    };"
 print "}"
 print "</script>"
 
-
+######
 # backend part (view model)
-
+######
 
 
 print "<script type='text/javascript'>"
@@ -217,8 +255,12 @@ print "  function Event(data) {"
 print "    this.name = data.name; "
 print "    this.type = data.type;"
 print "    this.actions = ko.observableArray([]);"
+print "    this.parameterNames = ko.observableArray([]);"
 print "    if(data.hasOwnProperty('actions')) {"
 print "        this.actions(data.actions);"
+print "    }"
+print "    if(data.hasOwnProperty('parameterNames')) {"
+print "        this.parameterNames(data.parameterNames);"
 print "    }"
 print "  }"
 print "  function User(data) {"
@@ -228,6 +270,10 @@ print "  function Action(data) {"
 print "    this.name = data.name; "
 print "    this.type = data.type;"
 print "    this.removed = ko.observable(true);"
+print "    this.expectedArgs = ko.observableArray([]);"
+print "    if(data.hasOwnProperty('expectedArgs')) {"
+print "        this.expectedArgs(data.expectedArgs);"
+print "    }"
 print "    if(data.hasOwnProperty('removed')) {"
 print "        this.removed(data.removed);"
 print "    }"
@@ -245,7 +291,7 @@ print "   var self = this;"
 print "   self.defaultUser = new User({name:'WWWDefault'});"
 print "   self.chosenUserName = ko.observable(self.defaultUser);"
 print "   self.globalActions = ko.observableArray([]);"  #from Globals (=all actions available)
-print "   self.events = ko.observableArray([]);"  #from Globals (=all events available)
+print "   self.globalEvents = ko.observableArray([]);"  #from Globals (=all events available)
 print "   self.users = ko.observableArray([self.defaultUser]);"  #from Globals (=all users available)
 print "   self.userEvents = ko.observableArray([]);"
 print "   self.newUserName = ko.observable();"
@@ -305,8 +351,9 @@ print "      }"
 print "      if (!alreadyExists) {"
 print "        mappedActions = $.map(self.globalActions(), function(a){ return new Action(a); });"
 print "        var e = new Event(item) ; e.actions(mappedActions);"
+print "        e.parameterNames(item.parameterNames);"
 print "        self.userEvents.push( e );"
-print "        eventChart(e);"
+#print "        eventChart(e);" #TEMP REMOVE
 print "        self.save();"
 print "      }"
 print "   };"
@@ -335,7 +382,7 @@ print "                 e.actions([]);"
 print "                 return e;"
 print "              }"
 print "        });"
-print "        self.events(mappedEvents);"
+print "        self.globalEvents(mappedEvents);"
 #print "        self.userEvents(mappedEvents);" #ONLY for graphic UI!!
 print "    });"
 print "   self.saveGlobals = function() {"
@@ -348,7 +395,7 @@ print "                  }),"
 print "            json: ko.toJSON({"
 print "                     users: self.users(),"
 print "                     actionsAvailable: self.globalActions(),"
-print "                     eventsAvailable: self.events(),"
+print "                     eventsAvailable: self.globalEvents(),"
 print "                  }),"
 print "            },"
 print "         type: 'POST',"
@@ -417,7 +464,7 @@ print "              if (mappedEvents.length > 0) {"
 print "                 self.userEvents(mappedEvents);"
 print "                 for (evIdx in self.userEvents()) {"
 print "                    item = self.userEvents()[evIdx];"
-print "                    eventChart(item);"
+#print "                    eventChart(item);" #TEMP REMOVE
 print "                 };"
 print "              } else {"
 print "                 self.userEvents([]);"

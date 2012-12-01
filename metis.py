@@ -145,13 +145,13 @@ def main():
    actionNames = list()
    for a in actions:
       if (not a.hiddenFromUI):
-         actionNames.append( {'name':a.name, 'type':a.type }) #TODO: find a way to handle action 'input' args
+         actionNames.append( {'name':a.name, 'type':a.type, 'expectedArgs': a.expectedArgs })
 
    events = ThePluginManager().getAvailableEvents()
    eventNames = list()
    for e in events:
       if (not e.hiddenFromUI):
-         eventNames.append( {'name':e.name, 'type':e.type} ) #TODO: find a way to handle event 'output' args
+         eventNames.append( {'name':e.name, 'type':e.type, 'parameterNames': e.parameterNames} )
    f = open("internals/www/Globals.json", 'w')
    try:
       f.write(json.dumps( {'actionsAvailable':actionNames, 'eventsAvailable':eventNames, 'users':userNames} ))

@@ -48,6 +48,11 @@ class Config:
       '''
       return self.users[userName]
 
+   def saveConf(self):
+      '''
+      TODO: save the running config into the config file on demand
+      '''
+      pass
 
    def __loadConf(self):
       # Private method to load a configuration file at startup
