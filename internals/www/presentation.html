@@ -1,0 +1,134 @@
+
+<!--
+//# frontend part (list visualisation)
+ <body class='codeRunner'>
+    <h1>Availables</h1>
+
+
+    <h3>Users</h3>
+ <ul class='folders' data-bind='foreach: users'>
+     <li data-bind=' text: $data.name
+                    ,css: { selected: $data == $root.chosenUserName() }
+                    ,click: $root.selectUser
+                    '></li>
+ </ul>
+
+
+    <h3>Events</h3>
+    <ul data-bind='foreach: globalEvents, visible: globalEvents().length > 0'>
+       <li>
+       <input data-bind='value: name'/>
+       <a href='#' data-bind='click: $root.addEvent'>Add</a>
+       //<input data-bind='value: type'/>
+       </li> 
+    </ul>
+
+    <h1>Event Profiles</h1>
+
+    <h2>Events</h2>
+    <ul data-bind='foreach: userEvents, visible: userEvents().length > 0'>
+       <li>
+       <input data-bind='value: name'/>
+
+ //<pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>   #USEFUL DEBUG!!
+
+       <a href='#' data-bind='click: $root.removeEvent'>Delete</a>
+
+         <h3 data-bind='visible: actions().length > 0'>Associated Actions</h3>
+            <ul data-bind='foreach: actions, visible: actions().length > 0'>
+               <li>
+               <input data-bind='value: name, disable : removed'/>
+               <a href='#' data-bind='click: $parents[1].removeAction'>Delete</a>
+               <a href='#' data-bind='click: $parents[1].addAction'>Add</a>
+               </li> 
+            </ul>
+
+
+       </li> 
+    </ul>
+
+    <button data-bind='click: save'>Save</button>
+ </body>
+ -->
+
+<!-- //# frontend part (graph visualisation) -->
+<body class='codeRunner'>
+    <h1>Availables</h1>
+
+
+    <h3>Users</h3>
+    <ul class='folders' data-bind='foreach: users'>
+     <li data-bind=' text: $data.name
+                    ,css: { selected: $data == $root.chosenUserName() }
+                    ,click: $root.selectUser
+                    '></li>
+    </ul>
+    <input id='newUserName' data-bind='value: newUserName'></input>
+    <button data-bind='click: newUser'>Create New User</button>
+
+
+    <h3>Events</h3>
+    <ul data-bind='foreach: globalEvents, visible: globalEvents().length > 0'>
+       <li>
+       <input data-bind='value: name'/>
+<!-- //#print "<pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>"   #USEFUL DEBUG!! -->
+       <a href='#' data-bind='click: $root.addEvent'>Add</a>
+       </li> 
+    </ul>
+
+    <h1>Event Profiles</h1>
+
+    <table border='0'>
+    <tr data-bind='foreach: userEvents, visible: userEvents().length > 0' >
+<!-- 
+//       <td data-bind='value: name'>
+// <pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>   #USEFUL DEBUG!!
+//       <div class='eventNameBox' data-bind='text: name' /> 
+//       </td> -->
+       <td data-bind='value: name' id='graphContainerTD'>
+<!--//       <div data-bind='attr: {\id\: name}, text: name' style='min-width: 500px; min-height: 300px; margin: 0 auto;' ></div> -->
+
+<!-- //<pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre>   #USEFUL DEBUG!! -->
+            <table border='1'>
+            <tr>
+            <td>
+               <ul data-bind='foreach: parameterNames'>
+                  <li>
+<!--  //#TODO: change input into nice eye-candy box -->
+                  <input data-bind='value: $data'/>
+                  </li> 
+               </ul>
+            </td>
+            <td>
+            <h3 data-bind='visible: actions().length > 0, text:name'></h3>
+               <ul data-bind='foreach: actions, visible: actions().length > 0'>
+                  <li>
+                  <input data-bind='value: name, disable : removed()'/>
+                     <ul data-bind='foreach: expectedArgs, visible: removed()==false'>
+                        <li>
+                        <!--  //#TODO: change input into nice eye-candy box -->
+                        <!--  //#TODO: allow binding between boxes, add logic to handle those bindings -->
+                        <input data-bind='value: $data, disable: $parents[0].removed()'/>
+                        </li> 
+                     </ul>
+                  <a href='#' data-bind='click: $parents[1].removeAction'>Delete</a>
+                  <a href='#' data-bind='click: $parents[1].addAction'>Add</a>
+                  </li> 
+               </ul>
+            </td>
+            </tr>
+            </table>
+
+
+       <div style='text-align: center;'>
+         <a href='#' data-bind='click: $root.removeEvent' >Skip from EventProfile (remove all actions associated)</a>
+       </div>
+       </td> 
+    </tr> 
+    </table> 
+
+
+    <button data-bind='click: save'>Save</button>
+ </body>
+
+
