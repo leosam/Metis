@@ -3,6 +3,9 @@ import logging
 import inspect
 import copy
 import action_def
+import json
+import os
+import stat
 from eventProfile import *
 
 #TODO: arguments names bindings in EventProfile
@@ -32,6 +35,25 @@ class User:
       return None
    def addEventProfile(self,evtprof):
       self.evtProfs.append(evtprof)
+   '''
+   Write the user's Eventprofiles into a JSON file
+   For access via the WebUI
+   '''
+   def dumpProfilesJSON(self):
+      filename = "internals/www/"+self.name+".json"
+      f = open(filename, 'w')
+      try:
+         profs = []
+         for p in self.evtProfs:
+            profs.append(p.dumpJSON())
+         f.write( json.dumps(profs) )
+      except Exception as error_code:
+         logging.error("Error with the User's json dump : %s" %(error_code))
+      finally:
+         f.close()
+      #now grant read/write permissions to all, since webserver should have read/write access as well as us
+      os.chmod(filename, stat.S_IWRITE | stat.S_IREAD | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+
    #this is only for debug purposes, to print out things
    def logProfiles(self):
       logging.debug('User %s has:' %(self.name))

@@ -169,10 +169,12 @@ def main():
    finally:
       f.close()
 
-   #grants read & write permissions to all, since webserver should have read/write access as well as us
+   #grant read & write permissions to all, since webserver should have read/write access as well as us
    os.chmod("internals/www/Globals.json", stat.S_IWRITE | stat.S_IREAD | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
 
-   #TODO: set correct permissions on Globals.json so that Webserver can write it too
+
+   for u in getUsers():
+      u.dumpProfilesJSON()
 
    ######
    # Generic start

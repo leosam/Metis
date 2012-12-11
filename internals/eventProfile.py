@@ -3,6 +3,7 @@ import logging
 import inspect
 import copy
 import eventProfileBindings
+import json
 
 class EventProfile:
    def __init__(self,event):
@@ -22,7 +23,8 @@ class EventProfile:
       return ba
 
    def __addAction(self, action):
-      self.actions.append(action)
+      if action not in self.actions:
+         self.actions.append(action)
 
    def addBinding(self, binding):
       try:
@@ -30,6 +32,19 @@ class EventProfile:
          self.__addAction(binding.action)
       except NameError ,e:
          logging.error("Error trying to add binding to eventProfile %s : %s" %(self.event.name, e) )
+
+   '''
+   Returns a serialized object of the EventProfile
+   For further JSON use with the WebUI
+   '''
+   def dumpJSON(self):
+      bindings = []
+      for b in self.bindings:
+         bindings.append(b.dumpJSON())
+      actions = []
+      for a in self.actions:
+         actions.append(a.dumpJSON())
+      return {'type':self.event.type, 'name':self.event.name, 'bindings':bindings, 'actions':actions}
 
    #this is only for debug purposes, to print out things
    def logProfile(self):

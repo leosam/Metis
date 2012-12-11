@@ -6,6 +6,10 @@
 */
 
 var viewModel;
+
+
+
+/*
 var globalChart = Highcharts;
 function eventChart(event) {
    //console.log('trying to chart :'+event.name+' HTML element is '+document.getElementById(event.name));
@@ -57,7 +61,7 @@ function eventChart(event) {
        }]
    });
 }
-
+*/
 
 
 if(typeof(String.prototype.trim) === 'undefined')
@@ -76,14 +80,20 @@ if(typeof(String.prototype.trim) === 'undefined')
 
 function Event(data) {
    this.name = data.name; 
-   this.type = data.type;
    this.actions = ko.observableArray([]);
+   this.bindings = ko.observableArray([]);
    this.parameterNames = ko.observableArray([]);
+   if(data.hasOwnProperty('bindings')) {
+      this.bindings(data.bindings);
+   }
    if(data.hasOwnProperty('actions')) {
       this.actions(data.actions);
    }
    if(data.hasOwnProperty('parameterNames')) {
       this.parameterNames(data.parameterNames);
+   } else {
+      //fill parameterNames using globals when not building globals
+      this.parameterNames(viewModel.getEvent(this.name).parameterNames());
    }
 }
 function User(data) {
@@ -96,17 +106,32 @@ function Action(data) {
    this.expectedArgs = ko.observableArray([]);
    if(data.hasOwnProperty('expectedArgs')) {
       this.expectedArgs(data.expectedArgs);
+   } else {
+      //fill expectedArgs using globals when not building globals
+      if (viewModel.getAction(this.name) == null) {
+         console.log("can't find Action "+this.name+" in Globals"+JSON.stringify(ko.toJS(data), null, 2));
+      }
+      this.expectedArgs(viewModel.getAction(this.name).expectedArgs());
    }
+
    if(data.hasOwnProperty('removed')) {
       this.removed(data.removed);
    }
    //#### here's the specific part for chart UI (on each action) ###
+   /*
    if (this.removed) {
       this.selected = false;
    }else {
       this.selected = true;
    }
-   this.y = 100.0*1.0/viewModel.globalActions().length;
+   */
+   //this.y = 100.0*1.0/viewModel.globalActions().length;
+}
+function Binding(data) {
+   this.eventName = data.event;
+   this.actionName = data.action;
+   this.eventArgument = data.eventArgument;
+   this.actionArgument = data.actionArgument;
 }
 function TaskListViewModel() {
    // Data
@@ -115,7 +140,8 @@ function TaskListViewModel() {
    self.chosenUserName = ko.observable(self.defaultUser);
    self.globalActions = ko.observableArray([]); // #from Globals (=all actions available)
    self.globalEvents = ko.observableArray([]); // #from Globals (=all events available)
-   self.users = ko.observableArray([self.defaultUser]);  //#from Globals (=all users available)
+   //self.users = ko.observableArray([self.defaultUser]);  //#from Globals (=all users available)
+   self.users = ko.observableArray([]);  //#from Globals (=all users available)
    self.userEvents = ko.observableArray([]);
    self.newUserName = ko.observable();
 
@@ -150,20 +176,21 @@ function TaskListViewModel() {
       }
       self.selectUser(user)
    }
-   self.selectUser = function(user) { 
-      if (self.chosenUserName() && self.chosenUserName().name != ''
-         ) {
+   self.selectUser = function(user) {
+      if (self.chosenUserName() && self.chosenUserName().name != '') {
             //            self.save(); //#DEBUG: TO REPUT IN PLACE
          }
       self.chosenUserName(user);
-      self.loadUserPrefs();
+      if (self.chosenUserName().name != self.defaultUser.name) {
+         self.loadUserPrefs();
+      }
       //         self.save(); //#DEBUG 
    };
    self.removeEvent = function(item) { 
       self.userEvents.remove(item);
       self.save();
    };
-   self.addEvent = function(item) { 
+   self.addEvent = function(item) {
       var alreadyExists = false;
       for (evIdx in self.userEvents()) {
          if( self.userEvents()[evIdx].name == item.name ) {
@@ -189,12 +216,31 @@ function TaskListViewModel() {
       self.save();
    };
 
+   self.getEvent = function(name) {
+      var res = null;
+      for (evIdx in self.globalEvents()) {
+         if( self.globalEvents()[evIdx].name == name ) {
+            res = self.globalEvents()[evIdx];
+         }
+      }
+      return res;
+   }
+   self.getAction = function(name) {
+      var res = null;
+      for (evIdx in self.globalActions()) {
+         if( self.globalActions()[evIdx].name == name ) {
+            res = self.globalActions()[evIdx];
+         }
+      }
+      return res;
+   }
+
    //Load initial state from server, convert it to instances, then populate self
 
    $.getJSON('Globals.json', function(allData) {
       var mappedUsers = $.map(allData['users'], function(item) { return new User(item) });
       self.users(mappedUsers);
-      self.users.push(self.defaultUser);
+      //self.users.push(self.defaultUser);
       var mappedActions = $.map(allData['actionsAvailable'], function(item) { if (!item.hiddenFromUI) {return new Action(item)} });
       self.globalActions(mappedActions);
       var mappedEvents = $.map(allData['eventsAvailable'], function(item) { 
@@ -207,7 +253,7 @@ function TaskListViewModel() {
          }
       });
       self.globalEvents(mappedEvents);
-      self.userEvents(mappedEvents); //#ONLY for graphic UI!!
+      //self.userEvents(mappedEvents); //#ONLY for graphic UI!!
    });
    self.saveGlobals = function() {
       $.ajax('save.py', {
@@ -274,29 +320,35 @@ function TaskListViewModel() {
          dataType: 'json',
          success: function(allData) {
             var mappedEvents = new Array()
-         mappedEvents = $.map(allData, function(item) { 
-            if (!item.hiddenFromUI) {
-               var e = new Event(item);
-               mappedActions = [];
-               //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
-               mappedActions = $.map(item.actions, function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
-               e.actions(mappedActions);
-               return e;
+            mappedEvents = $.map(allData, function(item) {
+               if (!item.hiddenFromUI) {
+                  var e = new Event(item);
+                  mappedActions = [];
+                  //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
+                  mappedActions = $.map(item.actions, function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
+                  e.actions(mappedActions);
+                  mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
+                  e.bindings(mappedBindings);
+                  return e;
+               }
+            });
+            if (mappedEvents.length > 0) {
+               self.userEvents(mappedEvents);
+               for (evIdx in self.userEvents()) {
+                  item = self.userEvents()[evIdx];
+                  //eventChart(item); //#TEMP REMOVE
+               };
+            } else {
+               self.userEvents([]);
             }
-         });
-      if (mappedEvents.length > 0) {
-         self.userEvents(mappedEvents);
-         for (evIdx in self.userEvents()) {
-            item = self.userEvents()[evIdx];
-            //                     eventChart(item); //#TEMP REMOVE
-         };
-      } else {
-         self.userEvents([]);
-      }
          },
          error: function(allData) {
-            if (self.chosenUserName() != self.defaultUser) {
+            if (self.chosenUserName() != self.defaultUser && allData.status != 200) {
                Notifier.warning('User '+ self.chosenUserName().name + ' does not have a profile yet', 'Preferences loading');
+            }
+            else if (allData.status != 404) {
+               Notifier.error('Error loading profile for '+ self.chosenUserName().name, 'Preferences loading');
+               console.log('error processing : '+JSON.stringify(ko.toJS(allData), null, 2));
             }
             self.userEvents([]);
          }
@@ -307,6 +359,9 @@ function TaskListViewModel() {
 var logEvent = function(event){
    console.log('seen '+event.name);
 }
-viewModel = new TaskListViewModel()
+
+//$(document).ready(function(){
+   viewModel = new TaskListViewModel()
    ko.applyBindings(viewModel);
+//}
 
