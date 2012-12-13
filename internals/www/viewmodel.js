@@ -72,6 +72,12 @@ if(typeof(String.prototype.trim) === 'undefined')
    }
 }
 
+//call graphic procedures for new Event
+function drawEvent(e) {
+   circles.gNewEvent(e, viewModel.globalActions());
+}
+
+
 /*
 ######
 # backend part (view model)
@@ -93,7 +99,9 @@ function Event(data) {
       this.parameterNames(data.parameterNames);
    } else {
       //fill parameterNames using globals when not building globals
-      this.parameterNames(viewModel.getEvent(this.name).parameterNames());
+      //console.log("Event is "+this.name+" : "+JSON.stringify(ko.toJS(data), null, 2));
+      var e = viewModel.getEvent(this.name);
+      this.parameterNames(e.parameterNames());
    }
 }
 function User(data) {
@@ -203,7 +211,7 @@ function TaskListViewModel() {
          var e = new Event(item) ; e.actions(mappedActions);
          e.parameterNames(item.parameterNames);
          self.userEvents.push( e );
-         //         eventChart(e); //#TEMP REMOVE
+         drawEvent(e);
          self.save();
       }
    };
@@ -240,7 +248,6 @@ function TaskListViewModel() {
    $.getJSON('Globals.json', function(allData) {
       var mappedUsers = $.map(allData['users'], function(item) { return new User(item) });
       self.users(mappedUsers);
-      //self.users.push(self.defaultUser);
       var mappedActions = $.map(allData['actionsAvailable'], function(item) { if (!item.hiddenFromUI) {return new Action(item)} });
       self.globalActions(mappedActions);
       var mappedEvents = $.map(allData['eventsAvailable'], function(item) { 
@@ -248,12 +255,10 @@ function TaskListViewModel() {
             var e = new Event(item);
             e.actions([]);
             e.parameterNames(item.parameterNames);
-            //eventChart(e); //#ONLY for graphic UI!!
             return e;
          }
       });
       self.globalEvents(mappedEvents);
-      //self.userEvents(mappedEvents); //#ONLY for graphic UI!!
    });
    self.saveGlobals = function() {
       $.ajax('save.py', {
@@ -336,7 +341,7 @@ function TaskListViewModel() {
                self.userEvents(mappedEvents);
                for (evIdx in self.userEvents()) {
                   item = self.userEvents()[evIdx];
-                  //eventChart(item); //#TEMP REMOVE
+                  drawEvent(item);
                };
             } else {
                self.userEvents([]);

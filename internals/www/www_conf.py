@@ -22,11 +22,14 @@ print "<meta http-equiv='Content-type' content='text/html;charset=UTF-8'>"
 print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
 print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
 
+print "<script type='text/javascript' src='raphael-debug.js'></script>"
+print "<script type='text/javascript' src='circles.js'></script>"
 
-print "<script src='notifier.js'></script>"
+print "<script type='text/javascript' src='notifier.js'></script>"
 
 #print "<script src='http://code.highcharts.com/highcharts.js'></script>"
 #print "<script src='http://code.highcharts.com/modules/exporting.js'></script>"
+
 
 """
 print "<script src='strathausen-dracula-5ff039e/vendor/raphael.js'></script>"
@@ -40,7 +43,7 @@ print "<script src='strathausen-dracula-5ff039e/js/dracula_algorithms.js'></scri
 #print "<script src='arbor-v0.92/lib/arbor-tween.js'></script> "
 
 
-#TODO: make our own styles
+#TODO: make our own styles => use twitter's Bootstrap ?
 
 print "<link rel='stylesheet' type='text/css' href='http://learn.knockoutjs.com/Content/App/coderunner.css'>"
 print "<link rel='stylesheet' type='text/css' href='http://learn.knockoutjs.com//Content/TutorialSpecific/loadingsaving.css'>"
