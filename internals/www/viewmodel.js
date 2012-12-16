@@ -112,8 +112,23 @@ function Action(data) {
    this.name = data.name; 
    this.type = data.type;
    this.removed = ko.observable(true);
-   //this.expectedArgs = ko.observableArray(data.expectedArgs);
    this.expectedArgs = data.expectedArgs;
+   this.addCircle = function(arg, circle) {
+      //this works to affect a single instance instead of multiple ones
+      //but i still don't understand why we receive circles of 'object' type (we need to ignore those, as it's done now)
+      if ( typeof(circle) == 'Raphael object') {
+         if (this.expectedArgs[arg] != null) {
+            this.expectedArgs[arg].circle = circle;
+         }
+         else {
+            console.log("WARNING: "+arg+" leads to null ("+this.name+")");
+         }
+      }
+      else {
+         if (circle != undefined && circle != null )
+            console.log("WARNING: "+circle+" is not raphael object (type is "+typeof(circle)+") " );
+      }
+   }
    if(data.hasOwnProperty('removed')) {
       this.removed(data.removed);
    }
@@ -214,14 +229,14 @@ function TaskListViewModel() {
    };
    self.addEvent = function(item) {
       var alreadyExists = false;
-      for (evIdx in self.userEvents()) {
+      for (var evIdx in self.userEvents()) {
          if( self.userEvents()[evIdx].name == item.name ) {
             alreadyExists = true;
          }
       }
       console.log('addEvent : '+alreadyExists);
       if (!alreadyExists) {
-         mappedActions = $.map(self.globalActions(), function(a){ return new Action(a); });
+         var mappedActions = $.map(self.globalActions(), function(a){ return new Action(a); });
          var e = new Event(item) ; e.actions(mappedActions);
          e.parameterNames(item.parameterNames);
          self.userEvents.push( e );
@@ -240,7 +255,7 @@ function TaskListViewModel() {
 
    self.getEvent = function(name) {
       var res = null;
-      for (evIdx in self.globalEvents()) {
+      for (var evIdx in self.globalEvents()) {
          if( self.globalEvents()[evIdx].name == name ) {
             res = self.globalEvents()[evIdx];
          }
@@ -249,7 +264,7 @@ function TaskListViewModel() {
    }
    self.getUserAction = function(name) {
       var res = null;
-      for (evIdx in self.userEvents().actions) {
+      for (var evIdx in self.userEvents().actions) {
          if( self.userEvents().actions[evIdx].name == name ) {
             res = self.userEvents()[evIdx];
          }
@@ -259,7 +274,7 @@ function TaskListViewModel() {
 
    self.getGlobalAction = function(name) {
       var res = null;
-      for (evIdx in self.globalActions()) {
+      for (var evIdx in self.globalActions()) {
          if( self.globalActions()[evIdx].name == name ) {
             res = self.globalActions()[evIdx];
          }
@@ -353,20 +368,20 @@ function TaskListViewModel() {
             mappedEvents = $.map(allData, function(item) {
                if (!item.hiddenFromUI) {
                   var e = new Event(item);
-                  mappedActions = [];
+                  var mappedActions = [];
                   //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
                   mappedActions = $.map(viewModel.globalActions(), function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
                   //TODO: tag removed actions properly depending on their presence in item.actions
                   e.actions(mappedActions);
-                  mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
+                  var mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
                   e.bindings(mappedBindings);
                   return e;
                }
             });
             if (mappedEvents.length > 0) {
                self.userEvents(mappedEvents);
-               for (evIdx in self.userEvents()) {
-                  item = self.userEvents()[evIdx];
+               for (var evIdx in self.userEvents()) {
+                  var item = self.userEvents()[evIdx];
                   drawEvent(item);
                };
             } else {
