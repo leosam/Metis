@@ -74,7 +74,8 @@ if(typeof(String.prototype.trim) === 'undefined')
 
 //call graphic procedures for new Event
 function drawEvent(e) {
-   circles.gNewEvent(e, viewModel.globalActions());
+   //console.log(JSON.stringify(ko.toJS(e.actions), null, 2));
+   circles.gNewEvent(e, e.actions());
 }
 
 
@@ -111,19 +112,32 @@ function Action(data) {
    this.name = data.name; 
    this.type = data.type;
    this.removed = ko.observable(true);
-   this.expectedArgs = ko.observableArray([]);
-   if(data.hasOwnProperty('expectedArgs')) {
-      this.expectedArgs(data.expectedArgs);
-   } else {
-      //fill expectedArgs using globals when not building globals
-      if (viewModel.getAction(this.name) == null) {
-         console.log("can't find Action "+this.name+" in Globals"+JSON.stringify(ko.toJS(data), null, 2));
-      }
-      this.expectedArgs(viewModel.getAction(this.name).expectedArgs());
-   }
-
+   //this.expectedArgs = ko.observableArray(data.expectedArgs);
+   this.expectedArgs = data.expectedArgs;
    if(data.hasOwnProperty('removed')) {
       this.removed(data.removed);
+   }
+   /*
+    * Here we do a transformation of data:
+    * expectedArgs comes as a table of simple strings, and we want it to be a table of mapped objects
+    * it is usefull to store graphical elements for each expectedArg (hence the additionnal "circle" member)
+    */
+   if(data.hasOwnProperty('expectedArgs')) {
+      if (data.expectedArgs[0] != null && !data.expectedArgs[0].hasOwnProperty('circle')) {
+         this.expectedArgs = $.map(data.expectedArgs, function(a) {
+            var x = {"arg":a, "circle":null};
+            return x;
+         });
+      }
+   } else {
+      //expectedArgs is not available in data, get them through globals
+      /*
+      this.expectedArgs = $.map(viewModel.getGlobalAction(data.name).expectedArgs, function(a) {
+         var x = {"arg":a, "circle":null};
+         return x;
+      });
+      */
+      this.expectedArgs = $.map(viewModel.getGlobalAction(data.name).expectedArgs,function(a) {return a;});
    }
    //#### here's the specific part for chart UI (on each action) ###
    /*
@@ -233,7 +247,17 @@ function TaskListViewModel() {
       }
       return res;
    }
-   self.getAction = function(name) {
+   self.getUserAction = function(name) {
+      var res = null;
+      for (evIdx in self.userEvents().actions) {
+         if( self.userEvents().actions[evIdx].name == name ) {
+            res = self.userEvents()[evIdx];
+         }
+      }
+      return res;
+   }
+
+   self.getGlobalAction = function(name) {
       var res = null;
       for (evIdx in self.globalActions()) {
          if( self.globalActions()[evIdx].name == name ) {
@@ -249,6 +273,7 @@ function TaskListViewModel() {
       var mappedUsers = $.map(allData['users'], function(item) { return new User(item) });
       self.users(mappedUsers);
       var mappedActions = $.map(allData['actionsAvailable'], function(item) { if (!item.hiddenFromUI) {return new Action(item)} });
+
       self.globalActions(mappedActions);
       var mappedEvents = $.map(allData['eventsAvailable'], function(item) { 
          if (!item.hiddenFromUI) {
@@ -330,7 +355,8 @@ function TaskListViewModel() {
                   var e = new Event(item);
                   mappedActions = [];
                   //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
-                  mappedActions = $.map(item.actions, function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
+                  mappedActions = $.map(viewModel.globalActions(), function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
+                  //TODO: tag removed actions properly depending on their presence in item.actions
                   e.actions(mappedActions);
                   mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
                   e.bindings(mappedBindings);

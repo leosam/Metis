@@ -15,14 +15,12 @@
          "font-size": 24,
          "title": action.name,
       });
-      /*
       c.node.onmouseover = function() {
-         c.animate({fill: "#0000FF", stroke: "#FF0000", "stroke-width": 80}, 500, "bounce");
+         c.animate({fill: "#0000FF", stroke: "#FF0000", "stroke-width": 40, "font-size":240,r:70}, 500, "bounce");
       };
       c.node.onmouseout = function() {
          c.stop().animate({fill: "#0000FF", stroke: "#aaaaaa", "stroke-width": 20, r:60}, 200);
       };
-      */
       this.gActionArgs(e,action);
       return c;
    }
@@ -36,35 +34,35 @@
    }
 
    Circles.__gActionArgsCircle = function(e,action, a, x, y, r) {
-         return e.paper.circle(x, y, r).attr({
-            fill: "#000",
-            stroke:"#aaa",
-            "stroke-width": 5,
-            "title": action.expectedArgs()[a],
-         });
+      //console.log(action.expectedArgs[a].arg);
+      return e.paper.circle(x, y, r).attr({
+             fill: "#000",
+             stroke:"#aaa",
+             "stroke-width": 5,
+             "title": action.expectedArgs[a].arg,
+      });
    }
    Circles.gActionArgs = function(e,action) {
-      var l = action.expectedArgs().length;
+      //console.log("Action="+action);
+      var l = action.expectedArgs.length;
       var t = 0;
-      for (a in action.expectedArgs()) {
+      for (a in action.expectedArgs) {
          var x = Math.sin(t)*60;
          var y = Math.cos(t)*60;
-         /*
-          * i don't understand javascript...this works fine (but useless as c is overwritten with each pass of the loop) :
-         c = this.__gActionArgsCircle(
-
-          * and this just doesn't work (TypeError: action.expectedArgs()[a].circle is undefined) when executing next 'mouseover' line
-          * parce que action.expectedArgs()[a] est une string et pas un objet...
-         action.expectedArgs()[a].circle = this.__gActionArgsCircle(
-         */
-               e, action, a,
-               action.centerx + x, action.centery + y, 20
-               );
-         action.expectedArgs()[a].circle.node.onmouseover = function() {
-            action.expectedArgs()[a].circle.animate({fill: "#00F", r:50}, 500, "bounce");
+         //ASSERT action.expectedArgs[a].circle should be null at this point
+         //CURRENT PROBLEM : grosse fouge sur les variables de circle, qui sont réutilisées à tout va, même entre deux papers
+         console.log(action.expectedArgs[a].circle);
+         action.expectedArgs[a].circle = this.__gActionArgsCircle(
+             e, action, a,
+             action.centerx + x, action.centery + y, 20
+         );
+         console.log(action.expectedArgs[a].arg);
+         action.expectedArgs[a].circle.node.onmouseover = function() {
+            console.log("Action="+action);
+            action.expectedArgs[a].circle.animate({fill: "#F00", r:40}, 500, "bounce");
          };
-         action.expectedArgs()[a].circle.node.onmouseout = function() {
-            action.expectedArgs()[a].circle.stop().animate({fill: "#000", r:20}, 200);
+         action.expectedArgs[a].circle.node.onmouseout = function() {
+            action.expectedArgs[a].circle.stop().animate({fill: "#000", r:20}, 200);
          };
          t += Math.PI*2/l;
       }
