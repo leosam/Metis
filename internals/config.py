@@ -42,17 +42,45 @@ class Config:
          raise Exception("no_config")
 
 
-   def getUser(self, userName):
-      '''
-      Returns a User
-      '''
-      return self.users[userName]
+   def __witeHeader__(self,conf):
+      conf.write("# WARNING: This file has been generated automatically.\n")
+      conf.write("# BE CAREFUL to get the syntax right if you choose to edit it\n")
+      conf.write("# It works as follows :\n\n")
+      conf.write("# Lines beginning with '#' are ignored (comments)\n")
+      conf.write("# ### You can define a new user with 'User' command:\n")
+      conf.write("# User Default\n")
+      conf.write("# ### Inside a user definition, define a Profile for an Event with operator ':'\n")
+      conf.write("# \tHelloEvent:\n")
+      conf.write("# ### Then, inside a Profile, use the 'Bind' command to bind a parameter from the Event to a parameter from the Action\n")
+      conf.write("# \t\tBind HelloAction : helloMsg > ignored\n")
+      conf.write("# #\t\tBind sayAction : helloMsg > spokenText\n")
+      conf.write("# ### here we specify that upon a newMailEvent, we want 3 fields to be spoken out loud : subject, from and the mail body\n")
+      conf.write("# \tnewMailEvent:\n")
+      conf.write("# \t\tBind sayAction : subject > spokenText\n")
+      conf.write("# \t\tBind sayAction : from > spokenText\n")
+      conf.write("# \t\tBind sayAction : body > spokenText\n")
+      conf.write("\n")
+
 
    def saveConf(self):
       '''
-      TODO: save the running config into the config file on demand
+      save the running config into the config file on demand
       '''
-      pass
+      conf = open(self.path, 'w')
+      if conf:
+         # We can open the configuration file, good
+         self.__witeHeader__(conf)
+
+         for u in userModule.getUsers():
+            conf.write("User %s" %(u.name))
+            for p in u.evtProfs:
+               conf.write("\t%s:" %(p.event.name))
+               for b in p.getBindings():
+                  conf.write("\t\tBind %s : %s > %s" %(b.action.name, b.eventArgument, b.actionArgument) )
+            conf.write("\n")
+         conf.write("\n")
+      else :
+         logging.error("Cannot open config file %s to save config!", %(self.path))
 
    def __loadConf(self):
       # Private method to load a configuration file at startup
@@ -113,8 +141,9 @@ class Config:
                else: 
                   continue
 
+         logging.info("Configuration file %s successfuly read", %(self.path))
          return 1
 
       else:
-         # Configuration file is unreadable
+         logging.error("Configuration file %s is unreadable!", %(self.path))
          return 0

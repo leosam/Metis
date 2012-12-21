@@ -30,6 +30,9 @@ class profilesUpdated(builtinEvent):
 from internalBindings import __bindInternals__
 
 # private function that actually does the work
+# this must executed inside an Action
+# this way we ensure that only the EventEngine thread read/write profiles, no sync needed
+# TODO: update this to handle bindings
 def __updateProfiles__(user, profiles):
    if (user != None):
       logging.warning("updating profile for %s" %(user.name))
