@@ -80,7 +80,7 @@ class Config:
             conf.write("\n")
          conf.write("\n")
       else :
-         logging.error("Cannot open config file %s to save config!", %(self.path))
+         logging.error("Cannot open config file %s to save config!" % (self.path))
 
    def __loadConf(self):
       # Private method to load a configuration file at startup
@@ -141,9 +141,9 @@ class Config:
                else: 
                   continue
 
-         logging.info("Configuration file %s successfuly read", %(self.path))
+         logging.info("Configuration file %s successfuly read" %(self.path))
          return 1
 
       else:
-         logging.error("Configuration file %s is unreadable!", %(self.path))
+         logging.error("Configuration file %s is unreadable!" %(self.path))
          return 0
