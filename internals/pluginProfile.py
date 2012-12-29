@@ -7,9 +7,8 @@ class PluginProfile:
       self.user = user
       self.plugin = plugin
       self.prefs = {'Pref.user':self.user}
-      #FIXME: get default prefs from plugin?
-      self.user.addPluginProfile(self)
-      self.plugin.addPluginProfile(self)
+      self.user.addPluginProfile(plugin, self)
+      self.plugin.addPluginProfile(user, self)
    def addPref(self, key, value):
       self.prefs[key] = value
       

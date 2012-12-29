@@ -11,6 +11,10 @@ import nltk
 
 import xoauth
 #TODO: find a way to handle per-user prefs
+
+PLUGIN_NAME = 'gmail'
+PLUGIN_PREFS = ['interval', 'mark_as_read', 'email', 'token', 'secret']
+
 MY_EMAIL = ''
 MY_TOKEN = ''  # your token
 MY_SECRET = ''                      # your secret
@@ -32,7 +36,7 @@ class gmailAction(action_def.Action):
 class gmailPlugin(plugin_def.Plugin):
    
    def __init__(self):
-      super(gmailPlugin,self).__init__();
+      super(gmailPlugin,self).__init__(PLUGIN_NAME);
       self.addAction(gmailAction(self))
       self.addEvent(newMailEvent())
       #self.conn = self.connect() #TOFIX with user preferences

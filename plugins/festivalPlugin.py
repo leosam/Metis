@@ -9,6 +9,9 @@ try:
 except:
    pass
 
+PLUGIN_NAME = 'festival'
+PLUGIN_PREFS = ['volume', 'mark_as_read', 'email', 'token', 'secret']
+
 class festivalEventSay(Event):
    def __init__(self):
       super(festivalEventSay,self).__init__("festivalEventType", "festivalEventSay")
@@ -30,7 +33,7 @@ class sayAction(Action):
 
 class festivalPlugin(Plugin):
    def __init__(self):
-      super(festivalPlugin,self).__init__();
+      super(festivalPlugin,self).__init__(PLUGIN_NAME);
       self.addAction(sayAction(self))
       self.addEvent(festivalEventSay())
       self.useFestival = True
@@ -61,6 +64,10 @@ class festivalPlugin(Plugin):
       logging.info("Saying:"+text)
       text=text.encode("latin-1")
       if (self.useFestival):
+         """
+         this is how we set preferences in festival (only session-wide)
+         (Parameter.set 'Audio_Command "aplay -q -c 1 -t raw -f s16 -r $SR $FILE")
+         """
          p1 = Popen(["echo", text], stdout=PIPE )
          self.pid = Popen(["festival", "--tts"], stdin=p1.stdout)
       else:

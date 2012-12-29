@@ -2,6 +2,7 @@
 import logging
 import inspect
 import copy
+import pluginProfile
 import action_def
 import json
 import os
@@ -25,7 +26,25 @@ class User:
       self.name = name
       self.status = "present"
       self.evtProfs = list()
-      self.pluginProf = None
+      self.pluginProfiles = dict()
+   """
+   Plugin-Profile stuff
+   """
+   def addPluginProfile(self, plugin, prof):
+      try:
+         self.pluginProfiles[plugin.name] = prof
+      except KeyError:
+         #TODO
+         logging.error("ERROR: PluginProfile merging not implemented yet!")
+   def getPluginProfile(self, plugin):
+      try:
+         return self.pluginProfiles[plugin.name]
+      except KeyError:
+         return None
+
+   """
+   Event-Profile stuff
+   """
    def getProfileByEvent(self,event):
       for p in self.evtProfs:
          if (p.event.name == event.name):

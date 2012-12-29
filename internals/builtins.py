@@ -4,6 +4,8 @@ import copy
 from plugin_def import *
 from action_def import *
 
+PLUGIN_NAME = 'builtins'
+
 class builtinEvent(Event):
    def __init__(self, type="builtinEventType", name="builtinEvent"):
       super(builtinEvent,self).__init__(type, name)
@@ -41,7 +43,7 @@ class triggerEvent(builtinAction):
 class builtinPlugin(Plugin):
    
    def __init__(self):
-      super(builtinPlugin,self).__init__();
+      super(builtinPlugin,self).__init__(PLUGIN_NAME);
       #self.addAction(builtinAction(self))
       #self.addEvent(builtinEvent())
       #self.addAction(triggerEvent(self))

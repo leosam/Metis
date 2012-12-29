@@ -44,6 +44,12 @@ class PluginManagerClass:
             return event
       return None
 
+   def getPluginByName(self, pluginName):
+      for plugin in self.pluginList:
+         if (plugin.name == pluginName):
+            return plugin
+      return None
+
 # To be able to instantiate a sole PluginManagerClass we need to do some dirty tricks:
 # Singleton methodology...
 class ThePluginManager(PluginManagerClass):
