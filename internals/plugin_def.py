@@ -8,7 +8,7 @@ import action_def
 import pluginProfile
 import eventEngine
 
-def __isPluginPref(moduleMember):
+def __isPluginConfig(moduleMember):
    """
    Filter function used by getPluginPrefs
    """
@@ -16,15 +16,15 @@ def __isPluginPref(moduleMember):
       return False
    return True
 
-def getPluginPrefs(module):
+def getPluginConf(module):
    """
-   Return the list of 'preferences' specified by the plugin defined in module
+   Return the list of config options specified by the plugin defined in plugin's code (module)
    """
-   prefs = dict()
-   for name,v in inspect.getmembers(module,__isPluginPref):
+   conf = dict()
+   for name,v in inspect.getmembers(module,__isPluginConfig):
       if (name.startswith("PLUGIN_") ):
-         prefs[name] = v
-   return prefs
+         conf[name] = v
+   return conf
 
 class Plugin(threading.Thread):
    def __init__(self, name):
@@ -45,6 +45,9 @@ class Plugin(threading.Thread):
       self.getActionList().append(action)
 
    def addPluginProfile(self, user, prof):
+      """
+      
+      """
       try:
          self.pluginProfiles[user.name] = prof
       except KeyError:
@@ -59,7 +62,8 @@ class Plugin(threading.Thread):
    def post(self, event):
       if (self.registered):
          logging.debug('(in plugin '+self.name+") posting event "+event.name+" for user "+self.user.name)
-         event.recipient = self.user.name
+         if (event.recipient):
+            event.recipient = self.user.name
          eventEngine.TheEventEngine().post(event)
       else:
          logging.warning('plugin '+self.name+"can't post "+event.name+" because it's not registered")

@@ -17,11 +17,11 @@ class PluginManagerClass:
       self.pluginList.append(plugin)
       plugin.manager = self
       plugin.registered = 1
-      plugin.prefs = plugin_def.getPluginPrefs(plugin.module)
-      if (plugin.name != plugin.prefs['PLUGIN_NAME']):
-         logging.error("plugin names differ : %s != %s (should be the same)" %(plugin.name, plugin.prefs['PLUGIN_NAME']))
+      plugin.conf = plugin_def.getPluginConf(plugin.module)
+      if (plugin.name != plugin.conf['PLUGIN_NAME']):
+         logging.error("plugin names differ : %s != %s (should be the same)" %(plugin.name, plugin.conf['PLUGIN_NAME']))
       try: 
-         if (plugin.prefs['PLUGIN_USER_POLICY'] == 'perUser'):
+         if (plugin.conf['PLUGIN_USER_POLICY'] == 'perUser'):
             self.perUserPlugins.append(plugin)
          else:
             # assume PLUGIN_USER_POLICY == 'global' as default

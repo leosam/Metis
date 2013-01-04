@@ -100,7 +100,9 @@ class Config:
             # Check if it is a user definition
             if line.startswith("User"):
                _,userName = line.split(' ', 1)
-               u = userModule.createNewUser(userName)
+               u = userModule.getUserByName(userName)
+               if (u == None):
+                  u = userModule.createNewUser(userName)
                self.users[userName] = u
                self.currentUser = u
                continue
@@ -157,7 +159,7 @@ class Config:
                line = line.replace('Pref','')   #remove 'Pref'
                line = line.replace(' ','')      #remove whitespaces
                line = line.replace('\t','')     #remove tabs
-               pref,value = re.split('=', line)
+               pref,value = re.split('=', line, 1)
                if self.currentPlugin == None:
                   logging.error("Config file syntax error : plugin preference found but no Plugin related! %s at line %d" %(conf.name, lineNumber) )
                   return 1
@@ -167,6 +169,7 @@ class Config:
                prof = self.currentPlugin.getPluginProfile(self.currentUser)
                if prof == None:
                   prof = pluginProfile.PluginProfile(self.currentUser, self.currentPlugin)
+               prof.addPref(pref, value)
                continue
 
             else: 

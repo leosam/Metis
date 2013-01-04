@@ -14,11 +14,7 @@ import xoauth
 
 PLUGIN_NAME = 'gmail'
 PLUGIN_USER_POLICY = 'perUser'
-PLUGIN_PREFS = ['interval', 'mark_as_read', 'email', 'token', 'secret']
-
-MY_EMAIL = ''
-MY_TOKEN = ''  # your token
-MY_SECRET = ''                      # your secret
+PLUGIN_PREFS = ['interval', 'mark_as_read', 'mail', 'token', 'secret']
 
 class newMailEvent(action_def.Event):
    def __init__(self):
@@ -39,14 +35,12 @@ class gmailPlugin(plugin_def.Plugin):
    def __init__(self):
       super(gmailPlugin,self).__init__(PLUGIN_NAME);
       self.addAction(gmailAction(self))
-      self.addEvent(newMailEvent(""))
-      #self.conn = self.connect() #TOFIX with user preferences
-      self.finished = 1 #TOFIX along the rest (reput to 0)
+      self.addEvent(newMailEvent())
+      self.finished = 0
       ####
       # PLUGIN PREFERENCES
       ####
-      self.interval = 90 #time interval between 2 mail checks #REALISTIC
-      self.interval = 2  #time interval between 2 mail checks #FOR DEBUG
+      self.interval = 90 #time interval between 2 mail checks (seconds)
       self.mark_as_read = 0 #mark emails seen as read
 
    def connect(self):
@@ -54,64 +48,83 @@ class gmailPlugin(plugin_def.Plugin):
       timestamp = str(int(time.time()))
 
       consumer = xoauth.OAuthEntity('anonymous', 'anonymous')
-      access = xoauth.OAuthEntity(MY_TOKEN, MY_SECRET)
+      access = xoauth.OAuthEntity(self.my_token, self.my_secret)
       token = xoauth.GenerateXOauthString(
-            consumer, access, MY_EMAIL, 'imap', MY_EMAIL, nonce, timestamp)
+            consumer, access, self.my_mail, 'imap', self.my_mail, nonce, timestamp)
 
       imap_conn = imaplib.IMAP4_SSL('imap.googlemail.com')
       imap_conn.debug = 4
+      imap_conn.debug = 0
       imap_conn.authenticate('XOAUTH', lambda x: token)
       imap_conn.select('INBOX')
 
       return imap_conn
 
    def run(self):
-      while (not self.finished):
-         (retcode, messages) = self.conn.search(None, '(UNSEEN)')
-         if retcode == 'OK':
-            for message in messages[0].split(' '):
-               if (message != ''):
-                  logging.info('Processing : %s', message)
-                  #fetch only the subject, not marking the mail as read
-                  (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
-                  if ret == 'OK':
-                     subject = mesginfo[0][1] #contains "Subject: "+actual subject
-                     logging.info(mesginfo)
-                  (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM)])')
-                  if ret == 'OK':
-                     fromstr = mesginfo[0][1] #contains "Subject: "+actual subject
-                     logging.info(mesginfo)
+      if (self.getPluginProfile(self.user) ):
+         #get prefs & passwords
+         self.my_mail = self.getPluginProfile(self.user).getPref("mail")
+         self.my_token = self.getPluginProfile(self.user).getPref("token")
+         self.my_secret = self.getPluginProfile(self.user).getPref("secret")
+         try:
+            self.interval = int(self.getPluginProfile(self.user).getPref("interval"))
+         except KeyError:
+            pass
+         try:
+            self.mark_as_read = int(self.getPluginProfile(self.user).getPref("mark_as_read"))
+         except KeyError:
+            pass
 
-                  #now fetch the whole thing
-                  msg_str = ""
-                  if (self.mark_as_read):
-                     (ret, mesginfo_body) = self.conn.fetch(message, '(RFC822)')
-                     msg_str = mesginfo_body[0][1]
-                  else :
-                     # PEEK doesn't mark as read
-                     (ret, mesginfo_body1) = self.conn.fetch(message, '(BODY.PEEK[HEADER])')
-                     (ret, mesginfo_body ) = self.conn.fetch(message, '(BODY.PEEK[TEXT])')
-                     msg_str = mesginfo_body1[0][1]+mesginfo_body[0][1]
-                  if ret == 'OK':
-                     mail = email.message_from_string(msg_str)
-                     bodytext = ""
-                     for part in mail.walk():
-                        if (part.get_content_type() == 'text/plain'):
-                           bodytext = part.get_payload(decode = True)
-                        elif (part.get_content_type() == 'text/html'):
-                           bodystring = nltk.clean_html(part.get_payload(decode=True)) #strip html
-                     if (bodytext == ""):
-                        bodytext = bodystring #if there's no text, then get the stripped html version 
-
-                     evt = newMailEvent()
-                     evt.eventArgs = {'mail':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
-                     evt.eventArgs = {'from':copy.copy(fromstr)}
-                     evt.eventArgs = {'subject':copy.copy(subject)}
-                     evt.eventArgs = {'body':copy.copy(bodytext)}
-                     self.post(evt)
-                     logging.info("newMail:"+bodytext)
-                     logging.debug(msg_str)
-         time.sleep(self.interval)
+         #get down to it
+         self.conn = self.connect()
+         while (not self.finished):
+            (retcode, messages) = self.conn.search(None, '(UNSEEN)')
+            if retcode == 'OK':
+               for message in messages[0].split(' '):
+                  if (message != ''):
+                     logging.info('Processing : %s', message)
+                     #fetch only the subject, not marking the mail as read
+                     (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (SUBJECT)])')
+                     if ret == 'OK':
+                        subject = mesginfo[0][1] #contains "Subject: "+actual subject
+                        logging.info(mesginfo)
+                     (ret, mesginfo) = self.conn.fetch(message, '(RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM)])')
+                     if ret == 'OK':
+                        fromstr = mesginfo[0][1] #contains "Subject: "+actual subject
+                        logging.info(mesginfo)
+   
+                     #now fetch the whole thing
+                     msg_str = ""
+                     if (self.mark_as_read):
+                        (ret, mesginfo_body) = self.conn.fetch(message, '(RFC822)')
+                        msg_str = mesginfo_body[0][1]
+                     else :
+                        # PEEK doesn't mark as read
+                        (ret, mesginfo_body1) = self.conn.fetch(message, '(BODY.PEEK[HEADER])')
+                        (ret, mesginfo_body ) = self.conn.fetch(message, '(BODY.PEEK[TEXT])')
+                        msg_str = mesginfo_body1[0][1]+mesginfo_body[0][1]
+                     if ret == 'OK':
+                        mail = email.message_from_string(msg_str)
+                        bodytext = ""
+                        for part in mail.walk():
+                           if (part.get_content_type() == 'text/plain'):
+                              bodytext = part.get_payload(decode = True)
+                           elif (part.get_content_type() == 'text/html'):
+                              bodystring = nltk.clean_html(part.get_payload(decode=True)) #strip html
+                        if (bodytext == ""):
+                           bodytext = bodystring #if there's no text, then get the stripped html version 
+   
+                        evt = newMailEvent()
+                        evt.eventArgs = {'mail':copy.copy(fromstr)+copy.copy(subject)+copy.copy(bodytext)}
+                        evt.eventArgs['from'] = copy.copy(fromstr)
+                        evt.eventArgs['subject'] = copy.copy(subject)
+                        evt.eventArgs['body'] = copy.copy(bodytext)
+                        self.post(evt)
+                        logging.info("newMail:"+bodytext)
+                        logging.debug(msg_str)
+            time.sleep(self.interval)
+      else:
+         logging.error("Gmail: lacking identifiers for user %s" %(self.user.name))
 
    def stop(self):
       self.finished = 1

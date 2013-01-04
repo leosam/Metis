@@ -49,12 +49,12 @@ class EventEngine(threading.Thread):
 
       logging.warning("SETTING TO STOP")
 
-   def updateArgs(self, args, bindings, event):
+   def applyBindings(self, args, bindings, event):
       for b in bindings:
          try:
             args[b.actionArgument] = event.eventArgs[b.eventArgument]
          except KeyError, e:
-            logging.error("Argument malformed (most likely a typo in config file) : %s" %(e))
+            logging.error("Argument malformed (most likely a typo in config file) : %s %s" %(e,b))
       args['user'] = event.recipient
 
    def getActionsForUser(self, u, event):
@@ -67,7 +67,7 @@ class EventEngine(threading.Thread):
          logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, event.name))
          for action in ep.getActions():
             newArgs = copy.copy(event.eventArgs) #copy args from event before modifying them
-            self.updateArgs(newArgs, ep.getBindingsForAction(action), event)
+            self.applyBindings(newArgs, ep.getBindingsForAction(action), event)
             actions.append([action, newArgs])
       else:
          logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))

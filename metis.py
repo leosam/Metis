@@ -56,27 +56,7 @@ def main():
    #registerInternalPlugins()
    builtins = builtinPlugin()
    builtins.module = imp.load_source("builtins","internals/builtins.py")
-   ThePluginManager().registerPlugin(builtins)
-   #epm = EventProfileManager()
-   #ThePluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
-
-   #DEBUG STUFF
-   '''
-   epu = profilesUpdated()
-
-   ep = user.getProfileByEvent(epu)
-   if (ep != None):
-      
-      logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(user.name, epu.name))
-      
-      for a in ep.getActions():
-         logging.debug(a.name)
-   else:
-      logging.error("BEWARE! user %s has no EventProfile attached!!" %(user.name))
-
-   epu.actionArgs['userName'] = 'Default'
-   engine.post(epu)
-   '''
+   ThePluginManager().registerPlugin(builtins) #here's the good way to register a plugin
 
    #bind to test EventProfileManager logic
    # NOTE : we need a system to get default bindings (at least for builtin plugins)
@@ -86,13 +66,13 @@ def main():
 
    ### Plugin auto-loading stuff
    #basically loads and register the plugins of all python files (*.py) in the "plugins" dir
-   #rule is fileName == pluginClassName   
+   #instanciate and register all class that are subclass of Plugin
    ###
    for p in glob.glob('plugins/*.py'):
       
       fileName = os.path.basename(p)
       pluginName = string.split(fileName,".")[0]
-      logging.warning("Potential plugin %s is available", pluginName)
+      logging.info("Potential plugin %s is available", pluginName)
       module = imp.load_source(pluginName,p)
       #module = importlib.import_module(pluginName) #alternate import method, same thing
       #classes = inspect.getmembers(sys.modules[pluginName], inspect.isclass)
@@ -100,10 +80,9 @@ def main():
       pluginClassName = pluginName
       for c in moduleClasses:
          globals()[c[0]] = c[1]  #UGLY HACK : since import does not put the classes into globals, we do it manually...(hopefully that's enough for complex plugins ?)
-         #if (c[0] == pluginClassName): #find the plugin's main class #TOFIX: try to find Plugin in parents of this class?
          try :
             newObj = c[1]()
-            if (issubclass(c[1], Plugin)):
+            if (issubclass(c[1], Plugin)): #check if potential class is a subclass of Plugin
                newplugin = newObj
                newplugin.module = module
                logging.warning("registering new plugin %s",c[0])

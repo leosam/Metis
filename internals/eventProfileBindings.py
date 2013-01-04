@@ -17,6 +17,10 @@ class EventProfileBinding:
       self.eventArgument = eventArgument
       self.actionArgument = actionArgument
       self.action = action
+
+   def __str__(self):
+      return "event %s (%s) to action %s (%s)" % (self.event.name, self.eventArgument, self.action.name, self.actionArgument)
+
    def dumpJSON(self):
       '''
       Returns a serializable form of the Binding

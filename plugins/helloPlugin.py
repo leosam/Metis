@@ -53,7 +53,7 @@ class helloPlugin(plugin_def.Plugin):
       Set default preferences values
       """
       self.interval = 3
-      self.count = 5
+      self.count = 1
 
    """
    Here's the main code of the plugin
@@ -61,12 +61,28 @@ class helloPlugin(plugin_def.Plugin):
    """
    def run(self):
       i = 0
+      #get count value if user defined it, if not we use default value 
+      if (self.getPluginProfile(self.user) ):
+         #Beware: Prefs come from config file as string, need appropriate cast (int here)
+         try:
+            self.count = int(self.getPluginProfile(self.user).getPref("count"))
+         except KeyError:
+            pass
+
+         # always expect a KeyError on each Pref if the Pref isn't redefined by user in config
+         try:
+            self.interval = int(self.getPluginProfile(self.user).getPref("interval")) 
+         except KeyError:
+            pass
+      
+      #Here's the main code
       while (not self.done):
          time.sleep(self.interval)
          self.post(HelloEvent())
          i = i+1
          if (i == self.count):
             self.stop()
+      logging.warning("HelloPlugin ends for %s " %(self.user.name))
 
    def stop(self):
       self.done = True

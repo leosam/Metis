@@ -11,4 +11,6 @@ class PluginProfile:
       self.plugin.addPluginProfile(user, self)
    def addPref(self, key, value):
       self.prefs[key] = value
+   def getPref(self, key):
+      return self.prefs[key]
       
