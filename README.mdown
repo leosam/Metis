@@ -22,9 +22,14 @@ There are no further specific requirements for Linux.
 #### Python Packages
 you should install the following packages to match Metis dependencies:
     
-    sudo easy_install pyttsx
+    sudo easy_install watchdog
     sudo easy_install nltk
 
+
+To install easy_install :
+    wget http://peak.telecommunity.com/dist/ez_setup.py
+    sudo python ez_setup.py 
+    
 #### Web Configuration Interface
 
 You will need a webserver with CGI support.

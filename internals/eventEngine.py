@@ -10,6 +10,7 @@ import action_def
 import plugin_def
 import userModule
 import plugin_mgr
+import eventProfileBindings
 
 class EventEngine(threading.Thread):
    '''
@@ -20,19 +21,10 @@ class EventEngine(threading.Thread):
       '''
       Constructor
       '''
-
       threading.Thread.__init__(self)
       self.eventqueue = Queue.Queue()
       self.finished = 0
-      self.PluginManager = plugin_mgr.PluginManagerClass(self)
 
-
-   def getPluginManager(self):
-      '''
-      Returns the PluginManager
-      '''
-
-      return self.PluginManager
 
 
    def post(self,event):
@@ -57,6 +49,29 @@ class EventEngine(threading.Thread):
 
       logging.warning("SETTING TO STOP")
 
+   def applyBindings(self, args, bindings, event):
+      for b in bindings:
+         try:
+            args[b.actionArgument] = event.eventArgs[b.eventArgument]
+         except KeyError, e:
+            logging.error("Argument malformed (most likely a typo in config file) : %s %s" %(e,b))
+      args['user'] = event.recipient
+
+   def getActionsForUser(self, u, event):
+      '''
+      Search for Actions correponding to event in user u's profile
+      '''
+      actions = list()
+      ep = u.getProfileByEvent(event)
+      if (ep != None):
+         logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, event.name))
+         for action in ep.getActions():
+            newArgs = copy.copy(event.eventArgs) #copy args from event before modifying them
+            self.applyBindings(newArgs, ep.getBindingsForAction(action), event)
+            actions.append([action, newArgs])
+      else:
+         logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
+      return actions
 
    def run(self):
       '''
@@ -71,42 +86,35 @@ class EventEngine(threading.Thread):
          nextEvent = self.eventqueue.get() #python's bug: can't be killed by Ctrl+C
          logging.debug("get event %s" %(nextEvent.name))
          
-         # TODO: clarify -> What are these newTasks?
-         newTasks = list()
+         # Temporarily Store actions to execute
+         actionsToExec = list()
+         
+         #Optional, but at this point the engine can add info on users or whatever state it wants and give that to the action
+         nextEvent.eventArgs.update({'testArg':"fromEngine"}) 
          
          # Get users that might be interested in this event
-         for u in userModule.getUsers():
-            
-            logging.warning("eventEngine sees user %s" %(u.name))
-            
-            ep = u.getProfileByEvent(nextEvent)
-            
-            if (ep != None):
-               logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, nextEvent.name))
-               for a in ep.getActions():
-                  logging.debug(a.name)
-                  
-                  # TODO: define policy
-                  #   should we execute each action for each user?
-                  #   some (at least internals) actions need to be executed only once... 
-                  #   not on a per-user basis (typically user creation...)
-                  
-               newTasks.extend(ep.getActions())
-
+         if (nextEvent.recipient == 'everyone'):
+            #get Actions from all Users who actually handle this Event
+            for u in userModule.getUsers():
+               actionsToExec.extend(self.getActionsForUser(u, nextEvent))
+               logging.warning("eventEngine sees user %s" %(u.name)) #TODO: put back on level info/debug
+         else:
+            u = userModule.getUserByName(nextEvent.recipient)
+            if (u != None):
+               #get Actions from the specified User
+               actionsToExec.extend(self.getActionsForUser(u, nextEvent))
+               logging.warning("eventEngine sees Event dedicated to user %s" %(u.name)) #TODO: put back on level info/debug
             else:
-               logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
-
-         newEvent.actionArgs.update({'testArg':"fromEngine"}) #optional, but the engine could add info on users or whatever state it wants and give that to the action
+               logging.error("Recipient not found for Event %s (recipient: %s)" %(nextEvent.name, nextEvent.recipient) )
          
-         if (len(newTasks) <= 0):
-            logging.warning("no action to execute for event %s" %(nextEvent.name))
+         if (len(actionsToExec) <= 0):
+            logging.warning("no action to execute for event %s, ignoring it" %(nextEvent.name))
          
-         for t in newTasks:
-            logging.debug("eventEngine executing %s for event %s (args are %s)" %(t.name, nextEvent.name, newEvent.actionArgs))
-            t(nextEvent.actionArgs)
-            t.treated = 1
+         for a,args in actionsToExec:
+            a(args)
+            a.treated = True
       
-      time.sleep(5) #TODO: remove ugly sleep and actually wait on all plugins to stop instead
+      time.sleep(5) #TODO: remove ugly sleep and actually wait on synced plugins (eg. voice) to end processing, when needed
       logging.warning("STOPPING")
 
 
@@ -114,9 +122,9 @@ class EventEngine(threading.Thread):
 # Singleton methodology...
 class TheEventEngine(EventEngine):
 
-   __instance = None
+   __instance = EventEngine()
 
-   def __new__(cls):
-      if cls.__instance == None:
-         cls.__instance = EventEngine.__new__(cls)
-      return cls.__instance
+   def __init__(self):
+      self.__dict__ = TheEventEngine.__instance.__dict__
+      self.__class__ = TheEventEngine.__instance.__class__
+

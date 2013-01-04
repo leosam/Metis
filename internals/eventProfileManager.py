@@ -30,6 +30,9 @@ class profilesUpdated(builtinEvent):
 from internalBindings import __bindInternals__
 
 # private function that actually does the work
+# this must executed inside an Action
+# this way we ensure that only the EventEngine thread read/write profiles, no sync needed
+# TODO: update this to handle bindings
 def __updateProfiles__(user, profiles):
    if (user != None):
       logging.warning("updating profile for %s" %(user.name))
@@ -43,9 +46,10 @@ def __updateProfiles__(user, profiles):
 
 ############
 # IMPORTANT NOTE: 
-#  we use Actions here to prevent
-#  any race condition when accessing EventProfiles 
-#  ie. the eventManager is alone processing those
+#  we define builtin Actions here to prevent
+#  any race condition when accessing EventProfiles
+#  ie. the eventManager is alone processing those profiles
+#  the eventProfileManager does not modify them directly
 ###########
 
 class handleNewUser(builtinAction):
@@ -154,6 +158,7 @@ class EventProfileManager(builtinPlugin):
                actions.append( actionHandle )
          e = manager.manager.getEventByName(event['name'])
          logging.debug("found event %s, adding actions %s" %(e,actions) )
+         #FIXME: adapt to Bindings system
          p.profiles.append(EventProfile(e, actions))
       manager.profiles[name].profiles = p.profiles
       logging.info("loadProfilesFromFile DONE")

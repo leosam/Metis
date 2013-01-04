@@ -37,6 +37,9 @@ try:
 except Exception, e1:
    error('error loading POST meta parameters : %s' %(e1))
 
+                  #TODO: actually remove tagged 'removed' actions 
+                  # then check consistency between actions and bindings
+                  # (or is it safer to just rebuild actions according to bindings?)
 try:
    f = open("%s.json" %(whom),'w')
    try:
