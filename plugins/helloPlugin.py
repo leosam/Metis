@@ -6,9 +6,13 @@ import action_def
 """
 Here is the interface of the plugin :
 - NAME should be unique (not 2 plugins with the same name during the same execution)
+- USER_POLICY specifies wether the plugin should be handled on a 'perUser' basis (email, social network accounts should be perUser), or is 'global' (the default) to all Users (everything related to the house should probably global).
+   'perUser' plugins are ensured to have a 'user' attribute before their thread is started
 - PREFS represents the plugin's preferences variables. Each user can specify them in their respective config file. Default values should apply if none provided.
 """
 PLUGIN_NAME = 'hello'
+#PLUGIN_USER_POLICY = 'global'
+PLUGIN_USER_POLICY = 'perUser'
 PLUGIN_PREFS = ['interval', 'count']
 
 

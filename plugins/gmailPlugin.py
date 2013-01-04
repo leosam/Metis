@@ -13,6 +13,7 @@ import xoauth
 #TODO: find a way to handle per-user prefs
 
 PLUGIN_NAME = 'gmail'
+PLUGIN_USER_POLICY = 'perUser'
 PLUGIN_PREFS = ['interval', 'mark_as_read', 'email', 'token', 'secret']
 
 MY_EMAIL = ''
@@ -38,7 +39,7 @@ class gmailPlugin(plugin_def.Plugin):
    def __init__(self):
       super(gmailPlugin,self).__init__(PLUGIN_NAME);
       self.addAction(gmailAction(self))
-      self.addEvent(newMailEvent())
+      self.addEvent(newMailEvent(""))
       #self.conn = self.connect() #TOFIX with user preferences
       self.finished = 1 #TOFIX along the rest (reput to 0)
       ####

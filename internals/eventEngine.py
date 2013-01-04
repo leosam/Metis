@@ -48,13 +48,30 @@ class EventEngine(threading.Thread):
       self.finished = 1
 
       logging.warning("SETTING TO STOP")
+
    def updateArgs(self, args, bindings, event):
       for b in bindings:
          try:
             args[b.actionArgument] = event.eventArgs[b.eventArgument]
          except KeyError, e:
             logging.error("Argument malformed (most likely a typo in config file) : %s" %(e))
+      args['user'] = event.recipient
 
+   def getActionsForUser(self, u, event):
+      '''
+      Search for Actions correponding to event in user u's profile
+      '''
+      actions = list()
+      ep = u.getProfileByEvent(event)
+      if (ep != None):
+         logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, event.name))
+         for action in ep.getActions():
+            newArgs = copy.copy(event.eventArgs) #copy args from event before modifying them
+            self.updateArgs(newArgs, ep.getBindingsForAction(action), event)
+            actions.append([action, newArgs])
+      else:
+         logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
+      return actions
 
    def run(self):
       '''
@@ -76,28 +93,26 @@ class EventEngine(threading.Thread):
          nextEvent.eventArgs.update({'testArg':"fromEngine"}) 
          
          # Get users that might be interested in this event
-         for u in userModule.getUsers():
-            
-            logging.warning("eventEngine sees user %s" %(u.name))
-            
-            ep = u.getProfileByEvent(nextEvent)
-            
-            if (ep != None):
-               logging.debug("(eventEngine) user's %s profile for event %s has actions : " %(u.name, nextEvent.name))
-               for action in ep.getActions():
-                  newArgs = copy.copy(nextEvent.eventArgs) #copy args from event before modifying them
-                  self.updateArgs(newArgs, ep.getBindingsForAction(action), nextEvent)
-                  actionsToExec.append([action, newArgs])
-
+         if (nextEvent.recipient == 'everyone'):
+            #get Actions from all Users who actually handle this Event
+            for u in userModule.getUsers():
+               actionsToExec.extend(self.getActionsForUser(u, nextEvent))
+               logging.warning("eventEngine sees user %s" %(u.name)) #TODO: put back on level info/debug
+         else:
+            u = userModule.getUserByName(nextEvent.recipient)
+            if (u != None):
+               #get Actions from the specified User
+               actionsToExec.extend(self.getActionsForUser(u, nextEvent))
+               logging.warning("eventEngine sees Event dedicated to user %s" %(u.name)) #TODO: put back on level info/debug
             else:
-               logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
+               logging.error("Recipient not found for Event %s (recipient: %s)" %(nextEvent.name, nextEvent.recipient) )
          
          if (len(actionsToExec) <= 0):
             logging.warning("no action to execute for event %s, ignoring it" %(nextEvent.name))
          
          for a,args in actionsToExec:
             a(args)
-            a.treated = 1
+            a.treated = True
       
       time.sleep(5) #TODO: remove ugly sleep and actually wait on synced plugins (eg. voice) to end processing, when needed
       logging.warning("STOPPING")

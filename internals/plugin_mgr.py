@@ -2,21 +2,43 @@
 import logging
 import inspect
 import copy
+import threading
 import plugin_def
-from userModule import *
+import userModule 
 
 class PluginManagerClass:
    def __init__(self):
       self.pluginList = list()
+      self.perUserPlugins = list()
+      self.globalPlugins = list()
+      self.userThreads = dict()
 
    def registerPlugin(self, plugin):
       self.pluginList.append(plugin)
-      #TODO: choose default policy
-      # wether or not we should bind all actions for each event inside a plugin
-      # by default, as a start (so it does something when you add a plugin)
       plugin.manager = self
       plugin.registered = 1
-      plugin.start() #don't forget to start the plugin's thread
+      plugin.prefs = plugin_def.getPluginPrefs(plugin.module)
+      if (plugin.name != plugin.prefs['PLUGIN_NAME']):
+         logging.error("plugin names differ : %s != %s (should be the same)" %(plugin.name, plugin.prefs['PLUGIN_NAME']))
+      try: 
+         if (plugin.prefs['PLUGIN_USER_POLICY'] == 'perUser'):
+            self.perUserPlugins.append(plugin)
+         else:
+            # assume PLUGIN_USER_POLICY == 'global' as default
+            self.globalPlugins.append(plugin)
+      except KeyError:
+         self.globalPlugins.append(plugin)
+
+   def startPlugins(self):
+      for p in self.globalPlugins:
+         p.start() #simply start the only one plugin's thread
+      for p in self.perUserPlugins:
+         for u in userModule.getUsers():
+            t = copy.copy(p)
+            threading.Thread.__init__(t)
+            self.userThreads[u.name] = t
+            t.user = u
+            t.start()
 
    def getAvailableActions(self):
       actions = list()

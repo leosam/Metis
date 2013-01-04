@@ -34,9 +34,10 @@ class Action(object):
       logging.debug('calling Action %s(%s) with args : %s' %(self.name, inspect.getmembers(self,inspect.isfunction)[0], args ))
 
 class Event(object):
-   def __init__(self, type=None, name="Null"):
+   def __init__(self, type=None, name="Null", recipient="everyone"):
       self.type = type
       self.name = name
+      self.recipient = recipient
       self.treated = 0
       self.eventArgs = {}
       self.hiddenFromUI = False

@@ -55,6 +55,7 @@ def main():
    # First thing to do, before creating users is to correctly bind events & actions to the user's profile
    #registerInternalPlugins()
    builtins = builtinPlugin()
+   builtins.module = imp.load_source("builtins","internals/builtins.py")
    ThePluginManager().registerPlugin(builtins)
    #epm = EventProfileManager()
    #ThePluginManager().registerPlugin(epm) #here's the good way to register an internal plugin
@@ -99,10 +100,20 @@ def main():
       pluginClassName = pluginName
       for c in moduleClasses:
          globals()[c[0]] = c[1]  #UGLY HACK : since import does not put the classes into globals, we do it manually...(hopefully that's enough for complex plugins ?)
-         if (c[0] == pluginClassName): #find the plugin's main class #TOFIX: try to find Plugin in parents of this class?
-            newplugin = c[1]()
-            logging.warning("registering new plugin %s",pluginClassName)
-            ThePluginManager().registerPlugin(newplugin)
+         #if (c[0] == pluginClassName): #find the plugin's main class #TOFIX: try to find Plugin in parents of this class?
+         try :
+            newObj = c[1]()
+            if (issubclass(c[1], Plugin)):
+               newplugin = newObj
+               newplugin.module = module
+               logging.warning("registering new plugin %s",c[0])
+               ThePluginManager().registerPlugin(newplugin)
+            else:
+               logging.debug("%s is not a Plugin subclass",c[0])
+               newObj = None  #discard useless object
+         except TypeError:
+            logging.debug("%s cannot be instanciated as a Plugin" %(c[0]))
+            pass
 
 
    ######
@@ -179,6 +190,7 @@ def main():
    ######
    # Generic start
    ######
+   ThePluginManager().startPlugins()
    engine.start();
    engine.join();
    logging.info("exiting")

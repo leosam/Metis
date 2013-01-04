@@ -10,6 +10,7 @@ except:
    pass
 
 PLUGIN_NAME = 'festival'
+#PLUGIN_USER_POLICY = 'global' #default setting
 PLUGIN_PREFS = ['volume', 'mark_as_read', 'email', 'token', 'secret']
 
 class festivalEventSay(Event):

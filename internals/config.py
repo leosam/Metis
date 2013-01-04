@@ -13,8 +13,7 @@ import re
 
 class Config:
    '''
-   The Config class is responsible for managing all configuration information related to the testbed site
-
+   The Config class is responsible for managing all configuration information related to Metis Users preferences
    '''
 
    def __init__(self, pathToConfig="metis.conf"):
@@ -176,7 +175,7 @@ class Config:
    def __loadConf__(self, path):
       """
       Private method to load a configuration file at startup
-        this is where the intelligence of Config is!!
+      Finds the right file to parse
       """
       # Open the configuration file
       conf = None
