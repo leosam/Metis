@@ -91,7 +91,7 @@ def createNewUser(name, bindInternals=True):
       raise ValueError("user %s already exists" %(name))
    else:
       u = User(name)
-      users.append(u)
+      users.append(u) #FIXME possible race between threads
  #     if (bindInternals):
  #        __bindInternals__(u)
       return u

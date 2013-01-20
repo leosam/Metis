@@ -16,6 +16,7 @@ PLUGIN_PREFS = ['volume', 'mark_as_read', 'email', 'token', 'secret']
 class festivalEventSay(Event):
    def __init__(self):
       super(festivalEventSay,self).__init__("festivalEventType", "festivalEventSay")
+      self.addParameter("toSay") #declare exported variables
 
 
 class sayAction(Action):
@@ -25,9 +26,9 @@ class sayAction(Action):
 
    def __call__(self, args={}):
       try :
-         logging.warning("in sayAction : text is %s", args['text']);
+         logging.warning("in sayAction : text is %s", args['spokenText']);
       except KeyError:
-         args['text'] = "Hello, I'm the new assistant"
+         args['spokenText'] = "Hello, I'm the new assistant"
       logging.warning("in sayAction : %s", args);
       self.plugin.syncSay(args['spokenText'])
 

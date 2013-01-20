@@ -74,12 +74,9 @@ def main():
       pluginName = string.split(fileName,".")[0]
       logging.info("Potential plugin %s is available", pluginName)
       module = imp.load_source(pluginName,p)
-      #module = importlib.import_module(pluginName) #alternate import method, same thing
-      #classes = inspect.getmembers(sys.modules[pluginName], inspect.isclass)
       moduleClasses = inspect.getmembers(module, inspect.isclass)
       pluginClassName = pluginName
       for c in moduleClasses:
-         globals()[c[0]] = c[1]  #UGLY HACK : since import does not put the classes into globals, we do it manually...(hopefully that's enough for complex plugins ?)
          try :
             newObj = c[1]()
             if (issubclass(c[1], Plugin)): #check if potential class is a subclass of Plugin
@@ -90,8 +87,8 @@ def main():
             else:
                logging.debug("%s is not a Plugin subclass",c[0])
                newObj = None  #discard useless object
-         except TypeError:
-            logging.debug("%s cannot be instanciated as a Plugin" %(c[0]))
+         except TypeError as e:
+            logging.debug("%s cannot be instanciated as a Plugin %s" %(c[0], e))
             pass
 
 

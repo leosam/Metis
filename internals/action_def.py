@@ -1,6 +1,7 @@
 import logging
 import inspect
 import copy
+import eventEngine
 
 class Action(object):
    def __init__(self, type = "dummy", name = "dummy", plugin = None):
@@ -44,4 +45,7 @@ class Event(object):
       self.parameterNames = list()  #exported list of keys used in actionArgs
    def addParameter(self, name):
       self.parameterNames.append(name)
+   def post(self):
+      logging.warning("event posted directly, bypassing plugin")
+      eventEngine.TheEventEngine().post(self)
 

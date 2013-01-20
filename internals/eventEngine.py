@@ -53,6 +53,7 @@ class EventEngine(threading.Thread):
       for b in bindings:
          try:
             args[b.actionArgument] = event.eventArgs[b.eventArgument]
+            logging.info("applying binding, args is %s" %(args))
          except KeyError, e:
             logging.error("Argument malformed (most likely a typo in config file) : %s %s" %(e,b))
       args['user'] = event.recipient
@@ -70,7 +71,7 @@ class EventEngine(threading.Thread):
             self.applyBindings(newArgs, ep.getBindingsForAction(action), event)
             actions.append([action, newArgs])
       else:
-         logging.error("BEWARE! user %s has no EventProfile attached!!" %(u.name))
+         logging.info("User %s has no EventProfile attached for this event" %(u.name))
       return actions
 
    def run(self):
@@ -97,18 +98,18 @@ class EventEngine(threading.Thread):
             #get Actions from all Users who actually handle this Event
             for u in userModule.getUsers():
                actionsToExec.extend(self.getActionsForUser(u, nextEvent))
-               logging.warning("eventEngine sees user %s" %(u.name)) #TODO: put back on level info/debug
+               logging.debug("eventEngine sees user %s" %(u.name))
          else:
             u = userModule.getUserByName(nextEvent.recipient)
             if (u != None):
                #get Actions from the specified User
                actionsToExec.extend(self.getActionsForUser(u, nextEvent))
-               logging.warning("eventEngine sees Event dedicated to user %s" %(u.name)) #TODO: put back on level info/debug
+               logging.debug("eventEngine sees Event dedicated to user %s" %(u.name))
             else:
                logging.error("Recipient not found for Event %s (recipient: %s)" %(nextEvent.name, nextEvent.recipient) )
          
          if (len(actionsToExec) <= 0):
-            logging.warning("no action to execute for event %s, ignoring it" %(nextEvent.name))
+            logging.warning("no action to execute for event %s (%s), ignoring it" %(nextEvent.name, nextEvent.eventArgs))
          
          for a,args in actionsToExec:
             a(args)

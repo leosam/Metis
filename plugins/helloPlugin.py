@@ -48,10 +48,10 @@ class helloPlugin(plugin_def.Plugin):
       """
       self.addAction(HelloAction(self))
       self.addEvent(HelloEvent())
-      self.done = False
       """
       Set default preferences values
       """
+      self.done = False
       self.interval = 3
       self.count = 1
 
