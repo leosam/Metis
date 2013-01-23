@@ -88,6 +88,8 @@ class shell(SocketServer.BaseRequestHandler):
             self.cmd = self.cmd.strip()
             logging.debug("TCP received |%s|" %(self.cmd))
             self.cmd.lower()
+            self.cmd = self.cmd.replace('"','\\"')
+            self.cmd = self.cmd.replace("'","\\'")
             if (self.cmd != ''):
                #generate event
                e = ShellCmdEvent()
@@ -102,9 +104,14 @@ class shell(SocketServer.BaseRequestHandler):
                   self.request.sendall(self.response)
                if (self.cmd == "stop" or self.cmd == "quit" or self.cmd == "exit"):
                   self.loop = False
+      except Exception as e:
+         logging.error("[Shell] connection error : %s" %(e))
       finally:
          #clean TCP connection
-         self.request.shutdown(socket.SHUT_RDWR)
+         try:
+            self.request.shutdown(socket.SHUT_RDWR)
+         except Exception as e:
+            logging.info("[Shell] Cannot shutdown client connection : %s" %(e))
 
    def buildResponse(self):
       response = ""
