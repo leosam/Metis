@@ -4,6 +4,8 @@ import os
 from plugin_def import *
 from action_def import *
 from subprocess import *
+import fcntl
+import time
 try:
    import pyttsx
 except:
@@ -39,6 +41,8 @@ class festivalPlugin(Plugin):
       self.addAction(sayAction(self))
       self.addEvent(festivalEventSay())
       self.useFestival = True
+      self.pipe = None #used for communicating with festival process (festival's stdin)
+      self.pipeout = None #used for communicating with festival process (festival's stdout & stderr)
       if (not self.useFestival):
          self.engine = pyttsx.init()
          logging.warning("pyttsx initialized");
@@ -51,6 +55,11 @@ class festivalPlugin(Plugin):
          self.engine.startLoop()
          logging.warning("pyttsx loop started ");
       else:
+         self.popen = Popen(["festival"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+         self.pipe = self.popen.stdin
+         self.pipeout = self.popen.stdout
+         #UNIX solution for nonblocking reads...sorry about portability :p
+         fcntl.fcntl(self.pipeout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK) 
          logging.warning("FestivalPlugin started");
 
    def stop(self):
@@ -66,15 +75,26 @@ class festivalPlugin(Plugin):
       logging.info("Saying:"+text)
       text=text.encode("latin-1")
       if (self.useFestival):
-         """
-         this is how we set preferences in festival (only session-wide)
-         (Parameter.set 'Audio_Command "aplay -q -c 1 -t raw -f s16 -r $SR $FILE")
-         """
-         p1 = Popen(["echo", text], stdout=PIPE )
-         self.pid = Popen(["festival", "--tts"], stdin=p1.stdout)
+         text.replace('"', '\"')
+         cmd = "(SayText \""+text+"\")\n"
+         cmd += "(help)\n" #we add this to get output from festival after saying so we can have a synchronizedSay function
+         logging.warning("[FESTIVAL] sending cmd: %s" %(cmd))
+         self.pipe.write(cmd)
       else:
          self.engine.say(text)
 
    #here's a function that only returns when whole text has been spoken
    def syncSay(self,text):
       self.say(text)
+      logging.debug("festival after saying, attempting to readline()")
+      gotOutput = False
+      msg = ""
+      #now get output of (help) when it's ready
+      while (not gotOutput):
+         try :
+            msg = self.pipeout.read() 
+            gotOutput = True
+         except IOError as e:
+            time.sleep(0.1)
+      logging.debug("festival (help) says: %s" %(msg)) #TODO: downgrade to info
+

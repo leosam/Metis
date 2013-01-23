@@ -104,7 +104,10 @@ class shell(SocketServer.BaseRequestHandler):
                   self.loop = False
       finally:
          #clean TCP connection
-         self.request.shutdown(socket.SHUT_RDWR)
+         try:
+            self.request.shutdown(socket.SHUT_RDWR)
+         except Exception as e:
+            logging.info("[Shell] Cannot shutdown client connection : %s" %(e))
 
    def buildResponse(self):
       response = ""
