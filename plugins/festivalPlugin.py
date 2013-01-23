@@ -61,7 +61,7 @@ class festivalPlugin(Plugin):
          #UNIX solution for nonblocking reads...sorry about portability :p
          fcntl.fcntl(self.pipeout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK) 
          logging.warning("FestivalPlugin started");
-         self.syncSay("Metis is up and ready")
+         self.syncSay("Metis is up and ready") #preload voice in cache, takes a while but speeds up further calls
 
    def stop(self):
       if (not self.useFestival):
@@ -69,6 +69,7 @@ class festivalPlugin(Plugin):
          self.engine.endLoop()
          logging.warning("pyttsx loop stopped");
       else:
+         self.popen.terminate()
          logging.warning("FestivalPlugin stopped");
 
    # the main function is here, for saying things
@@ -85,6 +86,8 @@ class festivalPlugin(Plugin):
          self.engine.say(text)
 
    #here's a function that only returns when whole text has been spoken
+   #BEWARE: syncSay works only when everyone uses syncSay
+   # there is no synchronization guaranteed when mixed use of say and syncSay
    def syncSay(self,text):
       self.say(text)
       logging.debug("festival after saying, attempting to readline()")

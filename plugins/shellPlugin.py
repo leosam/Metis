@@ -87,7 +87,11 @@ class shell(SocketServer.BaseRequestHandler):
                self.cmd = "exit"
             self.cmd = self.cmd.strip()
             logging.debug("TCP received |%s|" %(self.cmd))
+            logging.warning("[Shell] cmd BEFORE %s" %(self.cmd))
             self.cmd.lower()
+            self.cmd = self.cmd.replace('"','\\"')
+            self.cmd = self.cmd.replace("'","\\'")
+            logging.warning("[Shell] cmd AFTER %s" %(self.cmd))
             if (self.cmd != ''):
                #generate event
                e = ShellCmdEvent()
@@ -102,6 +106,8 @@ class shell(SocketServer.BaseRequestHandler):
                   self.request.sendall(self.response)
                if (self.cmd == "stop" or self.cmd == "quit" or self.cmd == "exit"):
                   self.loop = False
+      except Exception as e:
+         logging.error("[Shell] connection error : %s" %(e))
       finally:
          #clean TCP connection
          try:
