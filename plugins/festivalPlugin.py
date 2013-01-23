@@ -31,7 +31,7 @@ class sayAction(Action):
          logging.warning("in sayAction : text is %s", args['spokenText']);
       except KeyError:
          args['spokenText'] = "Hello, I'm the new assistant"
-      logging.warning("in sayAction : %s", args);
+      logging.info("in sayAction : %s", args);
       self.plugin.syncSay(args['spokenText'])
 
 

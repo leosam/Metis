@@ -87,11 +87,9 @@ class shell(SocketServer.BaseRequestHandler):
                self.cmd = "exit"
             self.cmd = self.cmd.strip()
             logging.debug("TCP received |%s|" %(self.cmd))
-            logging.warning("[Shell] cmd BEFORE %s" %(self.cmd))
             self.cmd.lower()
             self.cmd = self.cmd.replace('"','\\"')
             self.cmd = self.cmd.replace("'","\\'")
-            logging.warning("[Shell] cmd AFTER %s" %(self.cmd))
             if (self.cmd != ''):
                #generate event
                e = ShellCmdEvent()
