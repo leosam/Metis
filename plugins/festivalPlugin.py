@@ -12,7 +12,7 @@ except:
    pass
 
 PLUGIN_NAME = 'festival'
-#PLUGIN_USER_POLICY = 'global' #default setting
+PLUGIN_USER_POLICY = 'global' #enforce default setting (one global thread and not one per Metis user)
 PLUGIN_PREFS = ['volume', 'mark_as_read', 'email', 'token', 'secret']
 
 class festivalEventSay(Event):
@@ -80,7 +80,8 @@ class festivalPlugin(Plugin):
          text.replace('"', '\"')
          cmd = "(SayText \""+text+"\")\n"
          logging.info("[FESTIVAL] sending cmd: %s" %(cmd))
-         cmd += "(help)\n" #we add this to get output from festival after saying so we can have a synchronizedSay function
+         cmd += "(help)\n" #we add this to get some output from festival AFTER saying is done
+         #so we can have a synchronizedSay function
          self.pipe.write(cmd)
       else:
          self.engine.say(text)
