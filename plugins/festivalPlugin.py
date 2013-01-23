@@ -61,6 +61,7 @@ class festivalPlugin(Plugin):
          #UNIX solution for nonblocking reads...sorry about portability :p
          fcntl.fcntl(self.pipeout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK) 
          logging.warning("FestivalPlugin started");
+         self.syncSay("Metis is up and ready")
 
    def stop(self):
       if (not self.useFestival):
@@ -77,8 +78,8 @@ class festivalPlugin(Plugin):
       if (self.useFestival):
          text.replace('"', '\"')
          cmd = "(SayText \""+text+"\")\n"
+         logging.info("[FESTIVAL] sending cmd: %s" %(cmd))
          cmd += "(help)\n" #we add this to get output from festival after saying so we can have a synchronizedSay function
-         logging.warning("[FESTIVAL] sending cmd: %s" %(cmd))
          self.pipe.write(cmd)
       else:
          self.engine.say(text)
@@ -92,6 +93,7 @@ class festivalPlugin(Plugin):
       #now get output of (help) when it's ready
       while (not gotOutput):
          try :
+            time.sleep(0.1)
             msg = self.pipeout.read() 
             gotOutput = True
          except IOError as e:
