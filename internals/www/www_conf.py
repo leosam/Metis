@@ -20,7 +20,7 @@ print "<meta http-equiv='Content-type' content='text/html;charset=UTF-8'>"
 #print "<script type='text/javascript' src='jquery-1.8.1.min.js'></script>"
 #print "<script type='text/javascript' src='knockout-2.1.0.js'></script>"
 print "<script type='text/javascript' src='jquery-1.8.1.debug.js'></script>"
-print "<script type='text/javascript' src='knockout-2.1.0.debug.js'></script>"
+print "<script type='text/javascript' src='knockout-2.2.1.debug.js'></script>"
 
 print "<script type='text/javascript' src='raphael-debug.js'></script>"
 print "<script type='text/javascript' src='circles.js'></script>"

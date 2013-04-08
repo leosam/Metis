@@ -99,37 +99,24 @@
 <!-- <pre data-bind='text: JSON.stringify(ko.toJS($data), null, 2)'></pre> -->
             <table border='1'>
             <tr>
-            <td>
-               <h3>Event:</h3>
-               <div data-bind='text: name'></div>
+               <h3 >Event:<div data-bind='text: name'></div> </h3>
+               
+            <td >
+<!--  
                <h3 data-bind='visible: parameterNames().length > 0'>Available values:</h3>
                <ul data-bind='foreach: parameterNames'>
                   <li>
-<!--  //#TODO: change input into nice eye-candy box -->
                   <input data-bind='value: $data'/>
                   </li> 
                </ul>
+
+ -->
+              <div data-bind="attr: {id: name+'event'}"></div>
             </td>
             <td>
-
-            <!-- TRY with our circles -->
-            <div  data-bind='attr: {id: name}'></div>
-            <!--
-            <h3 data-bind='visible: actions().length > 0, text:name'></h3>
-               <ul data-bind='foreach: actions, visible: actions().length > 0'>
-                  <li>
-                  <input data-bind='value: name, disable : removed()'/>
-                     <ul data-bind='foreach: expectedArgs, visible: removed()==false'>
-                        <li>
-                        <input data-bind='value: $data, disable: $parents[0].removed()'/>
-                        </li> 
-                     </ul>
-                  <a href='#' data-bind='click: $parents[1].removeAction'>Delete</a>
-                  <a href='#' data-bind='click: $parents[1].addAction'>Add</a>
-                  </li> 
-               </ul>
-               -->
+              <div data-bind="attr: {id: name+'actions'}"></div>
             </td>
+
             </tr>
             </table>
 

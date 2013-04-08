@@ -89,13 +89,23 @@ function Event(data) {
     this.actions(data.actions);
   }
   if(data.hasOwnProperty('parameterNames')) {
-    this.parameterNames(data.parameterNames);
+    this.parameterNames({arg:data.parameterNames, rect:null});
   } else {
     //fill parameterNames using globals when not building globals
-    //console.log("Event is "+this.name+" : "+JSON.stringify(ko.toJS(data), null, 2));
     var e = viewModel.getEvent(this.name);
-    this.parameterNames(e.parameterNames());
+    tmp = $.map(e.parameterNames(), function(a) {
+      var x=null;
+      if(a.hasOwnProperty('arg')) {
+        x = {"arg":a['arg'], "rect":null};
+      }
+      else {
+        x = {"arg":a, "rect":null};
+      }
+    return x;
+    });
+    this.parameterNames(tmp);
   }
+  //console.log("param names for "+this.name+" are:"+JSON.stringify(this.parameterNames()));
 }
 function User(data) {
   this.name = data.name; 
@@ -104,7 +114,6 @@ function Action(data) {
   this.name = data.name; 
   this.type = data.type;
   this.removed = ko.observable(true);
-  //this.expectedArgs = data.expectedArgs;
   if(data.hasOwnProperty('removed')) {
     this.removed(data.removed);
   }
