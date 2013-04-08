@@ -95,10 +95,6 @@ def main():
    ######
    # create Users
    ######
-   # TODO: replace with actual user config, most likely read from file
-   #createNewUser('Test2')
-   #createNewUser('Test')
-   #user = createNewUser("Default")
    parser = config.Config("internals/metis.conf")
 
 

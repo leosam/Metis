@@ -130,6 +130,7 @@ class Config:
                if self.currentProfile != None:
                   a = plugin_mgr.ThePluginManager().getActionByName(actionName)
                   #TODO: check that actionArgument and eventArgument are in action.expectedArgs and event.parameterNames
+                  #throw a precise "syntax error" if not the case
                   b = eventProfileBindings.EventProfileBinding(self.currentProfile.event, eventArgument, a, actionArgument)
                   self.currentProfile.addBinding(b)
                else:
@@ -141,7 +142,6 @@ class Config:
             if line.startswith("Include"):
                ignored,configFile = re.split(' ', line)
                filename = configFile+".conf"
-               #self.__loadConf__(filename)
                Config(filename)
                continue
 

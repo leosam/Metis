@@ -291,7 +291,12 @@ function TaskListViewModel() {
 
   //Load initial state from server, convert it to instances, then populate self
 
-  $.getJSON('Globals.json', function(allData) {
+  $.ajax({
+    type: 'GET',
+  url: 'Globals.json',
+  dataType: 'json',
+  cache: false,
+  success: function(allData) {
     var mappedUsers = $.map(allData['users'], function(item) { return new User(item) });
     self.users(mappedUsers);
     var mappedActions = $.map(allData['actionsAvailable'], function(item) { if (!item.hiddenFromUI) {return new Action(item)} });
@@ -306,7 +311,18 @@ function TaskListViewModel() {
       }
     });
     self.globalEvents(mappedEvents);
+  },
+  error: function(allData) {
+    if (allData.status == 404) {
+      Notifier.warning('Global config file not found, make sure you run Metis!', 'Config loading');
+    }
+    else if (allData.status != 404) {
+      Notifier.error('Error getting global Metis config: '+allData.status, 'Config loading');
+      console.log('error processing : '+JSON.stringify(ko.toJS(allData), null, 2));
+    }
+  }
   });
+
   self.saveGlobals = function() {
     $.ajax('save.py', {
       data: {
@@ -370,30 +386,30 @@ function TaskListViewModel() {
       type: 'GET',
       url: self.chosenUserName().name+'.json',
       dataType: 'json',
+      cache: false,
       success: function(allData) {
-        var mappedEvents = new Array()
-      mappedEvents = $.map(allData, function(item) {
-        if (!item.hiddenFromUI) {
-          var e = new Event(item);
-          var mappedActions = [];
-          //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
-          mappedActions = $.map(viewModel.globalActions(), function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
-          //TODO: tag removed actions properly depending on their presence in item.actions
-          e.actions(mappedActions);
-          var mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
-          e.bindings(mappedBindings);
-          return e;
+        var mappedEvents = new Array();
+        mappedEvents = $.map(allData, function(item) {
+          if (!item.hiddenFromUI) {
+            var e = new Event(item);
+            var mappedActions = [];
+            //alert('Event:'+item.name+' has actions:'+JSON.stringify(item.actions));
+            mappedActions = $.map(viewModel.globalActions(), function(a){ if (!a.hiddenFromUI) {return new Action(a);} });
+            //TODO: tag removed actions properly depending on their presence in item.actions
+            e.actions(mappedActions);
+            var mappedBindings = $.map(item.bindings, function(b){ return new Binding(b);});
+            e.bindings(mappedBindings);
+            return e;
+          }
+        });
+        if (mappedEvents.length > 0) {
+          self.userEvents(mappedEvents);
+          for (var evIdx in self.userEvents()) {
+            drawEvent(self.userEvents()[evIdx]);
+          };
+        } else {
+          self.userEvents([]);
         }
-      });
-    if (mappedEvents.length > 0) {
-      self.userEvents(mappedEvents);
-      for (var evIdx in self.userEvents()) {
-        var item = self.userEvents()[evIdx];
-        drawEvent(item);
-      };
-    } else {
-      self.userEvents([]);
-    }
       },
       error: function(allData) {
         if (self.chosenUserName() != self.defaultUser && allData.status != 200) {

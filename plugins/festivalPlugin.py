@@ -75,7 +75,8 @@ class festivalPlugin(Plugin):
    # the main function is here, for saying things
    def say(self, text):
       logging.info("Saying:"+text)
-      text=text.encode("latin-1")
+      text=text.encode("latin-1") #FIXME!! might fail with:
+#UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 20: ordinal not in range(128)
       if (self.useFestival):
          text.replace('"', '\"')
          cmd = "(SayText \""+text+"\")\n"
