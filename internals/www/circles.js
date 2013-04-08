@@ -161,6 +161,7 @@
       for (i in r.bindings) {
         r.bindings[i].show();
       }
+      r.toFront();
     };
     r.node.onmouseout = function() {
       var myattr = commonAttr;
@@ -209,6 +210,7 @@
       for (i in c.bindings) {
         c.bindings[i].show();
       }
+      c.toFront();
     };
     c.node.onmouseout = function() {
       c.stop().animate({fill: c.fillColor, r:20}, 200);
